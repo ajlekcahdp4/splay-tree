@@ -9,7 +9,7 @@ endif()
 
 add_compile_options(-Wall -Wextra)
 
-set (SPLAY_TREE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set (SPLAY_TREE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
 
 find_package(GTest REQUIRED)
 
@@ -32,5 +32,5 @@ endif()
 
 find_program (BASH_PROGRAM bash)
 
-add_subdirectory(test)
+#add_subdirectory(test)
 add_subdirectory(lib)
