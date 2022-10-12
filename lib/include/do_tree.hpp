@@ -249,7 +249,10 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     // actually insert node in AVL
     base_node_ptr m_insert_node (owning_ptr to_insert);
 
-    // create node and insert it into the tree
+    // erase node from the container without rebalancing
+    void m_erase_pos (iterator pos);
+
+  public:
     iterator insert (const value_type &key)
     {
         auto to_insert             = new node (key);
@@ -260,10 +263,6 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
         return iterator {res, this};
     }
 
-    // erase node from the container without rebalancing
-    void m_erase_pos (iterator pos);
-
-  public:
     iterator find (const value_type &key)
     {
         auto [found, prev, prev_greater] = m_trav_bin_search (key, [] (base_node_ptr) {});
