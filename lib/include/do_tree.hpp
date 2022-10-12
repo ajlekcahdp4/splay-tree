@@ -72,17 +72,13 @@ struct do_tree_node_base
 // Helper type offering value initialization guarantee on the compare functor.
 template <class Compare_> struct do_tree_key_compare
 {
-    Compare_ m_key_compare;
+    Compare_ m_value_compare;
 
-    do_tree_key_compare (const Compare_ &comp) : m_key_compare (comp) {}
-    do_tree_key_compare (do_tree_key_compare<Compare_> &&other)
-    {
-        m_key_compare = std::move (other.m_key_compare);
-    }
+    do_tree_key_compare (const Compare_ &comp) : m_value_compare (comp) {}
 
     template <typename Key> bool operator() (const Key &k1, const Key &k2)
     {
-        return m_key_compare (k1, k2);
+        return m_value_compare (k1, k2);
     }
 };
 
@@ -113,16 +109,15 @@ struct do_tree_header
     }
 };
 
-template <typename Val> struct do_tree_node
+template <typename Val> struct do_tree_node : public do_tree_node_base
 {
     using size_type = typename do_tree_node_base::size_type;
     using base_node = do_tree_node_base;
     using node_t    = do_tree_node<Val>;
     using node_ptr  = do_tree_node<Val> *;
 
-    do_tree_node (const Val &p_key, size_type p_size = 1) : m_impl {p_size}, m_value {p_key} {}
+    do_tree_node (const Val &p_key) : m_value {p_key} {}
 
-    base_node m_impl {};
     Val m_value {};
 };
 
@@ -135,7 +130,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     using base_node     = do_tree_node_base;
     using base_node_ptr = do_tree_node_base *;
-    using node_ptr      = typename do_tree_node<Key_t>::node_ptr;
+    using node_ptr      = do_tree_node<Key_t> *;
     using owning_ptr    = typename do_tree_node_base::owning_ptr;
 
     using node = do_tree_node<Key_t>;
@@ -154,32 +149,32 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
         using self = do_tree_iterator;
 
-        reference operator* () const { return m_node->m_key; }
+        reference operator* () const { return (static_cast<node_ptr> (m_node))->m_value; }
 
-        pointer get () { return &(m_node->m_key); }
+        pointer get () { return &(static_cast<node_ptr> (m_node)->m_value); }
 
         pointer operator->() { return get (); }
 
-        self &operator++ () noexcept   // pre-increment
+        self &operator++ () noexcept
         {
             m_node = m_node->do_tree_increment ();
             return *this;
         }
 
-        self operator++ (int) noexcept   // post-increment
+        self operator++ (int) noexcept
         {
             self tmp = *this;
             m_node   = m_node->do_tree_increment ();
             return tmp;
         }
 
-        self &operator-- () noexcept   // pre-decrement
+        self &operator-- () noexcept
         {
-            m_node = (m_node ? m_node->do_tree_decrement () : m_tree->end ());
+            m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
             return *this;
         }
 
-        self operator-- (int) noexcept   // post-decrement
+        self operator-- (int) noexcept
         {
             self tmp = *this;
             m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
@@ -190,7 +185,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
         bool operator!= (const self &other) const noexcept { return m_node != other.m_node; }
 
-        node_ptr m_node                         = nullptr;
+        base_node_ptr m_node                    = nullptr;
         const do_tree<Key_t, Compare_t> *m_tree = nullptr;
     };
 
@@ -205,11 +200,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     using size_type = typename node::size_type;
 
   private:
-    node_ptr root () const noexcept { return m_header_struct.m_header->m_left.get (); }
-
-    iterator m_lower_bound (node_ptr x, node_ptr y, const value_type &k);
-
-    iterator m_upper_bound (node_ptr x, node_ptr y, const value_type &k);
+    base_node_ptr root () const noexcept { return m_header_struct.m_header->m_left.get (); }
 
   public:
     do_tree () : m_compare_struct (Compare_t {}), m_header_struct () {}
@@ -219,26 +210,31 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     self &operator= (const self &other) = delete;
 
     do_tree (self &&other) noexcept
-        : m_compare_struct (std::move (other.m_compare_struct.m_Keycompare))
+        : m_compare_struct {std::move (other.m_compare_struct)}, m_header_struct {std::move (
+                                                                     other.m_header_struct)}
     {
-        m_header_struct.m_header = std::move (other.m_header_struct.m_header);
-        std::swap (m_header_struct.m_leftmost, other.m_header_struct.m_leftmost);
-        std::swap (m_header_struct.m_rightmost, other.m_header_struct.m_rightmost);
+    }
+
+    self &operator= (self &&rhs) noexcept
+    {
+        std::swap (m_compare_struct, rhs.m_compare_struct);
+        std::swap (m_header_struct, rhs.m_header_struct);
+        return *this;
     }
 
     // Accessors.
 
-    iterator begin () const noexcept { return iterator (m_header_struct.m_leftmost, this); }
+    iterator begin () const noexcept { return iterator {m_header_struct.m_leftmost, this}; }
 
-    iterator end () const noexcept { return iterator (nullptr, this); }
+    iterator end () const noexcept { return iterator {nullptr, this}; }
 
-    reverse_iterator rbegin () noexcept { return reverse_iterator (end ()); }
+    reverse_iterator rbegin () noexcept { return reverse_iterator {end ()}; }
 
-    reverse_iterator rend () noexcept { return reverse_iterator (begin ()); }
+    reverse_iterator rend () noexcept { return reverse_iterator {begin ()}; }
 
     size_type size () const noexcept
     {
-        auto root = root ();
+        auto root = this->root ();
         return (root ? node::size (root) : 0);
     }
 
@@ -250,100 +246,59 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     // Insert/erase.
 
   private:
-    // Insert node in AVL tree without rebalancing.
+    // actually insert node in AVL
     base_node_ptr m_insert_node (owning_ptr to_insert);
 
-    // create node, insert and rebalance tree
-    iterator m_insert (const value_type &key)
+    // create node and insert it into the tree
+    iterator insert (const value_type &key)
     {
         auto to_insert             = new node (key);
         auto to_insert_base_unique = owning_ptr (static_cast<node_ptr> (to_insert));
 
         auto res = m_insert_node (std::move (to_insert_base_unique));
-        m_rebalance_after_insert (res);
 
-        return iterator (res, this);
+        return iterator {res, this};
     }
 
-    // Rebalance subtree after insert.
-    void m_rebalance_after_insert (node_ptr leaf);
-
-    node_ptr m_erase_pos (iterator to_erase_pos) { return m_erase_pos_impl (to_erase_pos); }
-
-    // Rebalance tree for erase.
-    void m_rebalance_for_erase (node_ptr node);
-
-    // erase node from the container.
-    node_ptr m_erase_pos_impl (iterator pos);
+    // erase node from the container without rebalancing
+    void m_erase_pos (iterator pos);
 
   public:
     iterator find (const value_type &key)
     {
-        auto [found, prev, prev_greater] = m_trav_bin_search (key, [] (node_ptr &) {});
-        return iterator (found, this);
+        auto [found, prev, prev_greater] = m_trav_bin_search (key, [] (base_node_ptr) {});
+        return iterator {found, this};
     }
 
     iterator m_find_for_erase (const value_type &key)
     {
         auto [found, prev, prev_greater] =
-            m_trav_bin_search (key, [] (node_ptr &node) { node->m_size--; });
+            m_trav_bin_search (key, [] (base_node_ptr node) { node->m_size--; });
         auto node = found;
 
         if ( node )
-            return iterator (node, this);
+            return iterator {node, this};
 
-        m_trav_bin_search (key, [] (node_ptr &node) { node->m_size++; });
+        m_trav_bin_search (key, [] (base_node_ptr node) { node->m_size++; });
         throw std::out_of_range ("No element with requested key for erase.");
     }
 
-    iterator insert (const value_type &key) { return m_insert (key); }
-
-    bool erase (const value_type &key)
+    void erase (const value_type &key)
     {
         auto to_erase_pos = m_find_for_erase (key);
-        return m_erase_pos (to_erase_pos);
+        m_erase_pos (to_erase_pos);
     }
 
-    void erase (iterator pos)   // ???
+    void erase (iterator pos)
     {
         if ( pos != end () )
         {
-            m_trav_bin_search (*pos, [] (node_ptr &node) { node->m_size--; });
+            m_trav_bin_search (*pos, [] (base_node_ptr &node) { node->m_size--; });
             m_erase_pos (pos);
         }
     }
 
     void clear () noexcept { m_header_struct.m_reset (); }
-
-    // Set operations.
-    iterator lower_bound (const value_type &k) { return m_lower_bound (root (), nullptr, k); }
-
-    iterator upper_bound (const value_type &k) { return m_upper_bound (root (), nullptr, k); }
-
-    // return key value of ith smallest element in AVL-tree
-    value_type m_os_select (size_type i);
-
-    // return the rank of the node with matching Key
-    size_type m_get_rank_of (iterator pos);
-
-    // Return number of elements with the key less then the given one.
-    size_type m_get_number_less_then (value_type key)
-    {
-        if ( empty () )
-            return 0;
-
-        auto min_key = s_key (begin ());
-
-        if ( this->m_compare_struct.m_Keycompare (key, min_key) || key == min_key )
-            return 0;
-
-        /* Previous element exists. */
-        auto closest_left = --upper_bound (key);
-
-        auto rank = m_get_rank_of (closest_left);
-
-        return (*closest_left == key ? rank - 1 : rank);
-    }
 
   public:
     bool operator== (const do_tree &other) const
@@ -353,10 +308,6 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     bool operator!= (const do_tree &other) const { return !(*this == other); }
 
-    value_type os_select (size_type i) { return m_os_select (i); }
-
-    size_type get_number_less_then (value_type key) { return m_get_number_less_then (key); }
-
     void dump (std::string filename) const
     {
         std::ofstream p_stream {filename};
@@ -364,12 +315,13 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
         p_stream << "digraph {\nrankdir = TB\n";
         for ( auto pos = begin (); pos != end (); pos++ )
         {
-            p_stream << "\tnode" << pos.m_node << "[label = \"{" << *pos << " | "
-                     << pos.m_node->m_bf << "} | " << pos.m_node->m_size
+            p_stream << "\tnode" << pos.m_node << "[label = \"{" << *pos << "} | "
+                     << pos.m_node->m_size
                      << "\", shape=record, style=filled, fillcolor=palegreen];\n";
 
             if ( pos.m_node->m_left )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left () << ";\n";
+                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left.get ()
+                         << ";\n";
             else
             {
                 p_stream << "\tnode" << pos.m_node << " -> node0_l_" << *pos << ";\n";
@@ -378,7 +330,8 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
             }
 
             if ( pos.m_node->m_right )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right () << ";\n";
+                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right.get ()
+                         << ";\n";
             else
             {
                 p_stream << "\tnode" << pos.m_node << " -> node0_r_" << *pos << ";\n";
@@ -568,83 +521,36 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_right ()
 }
 
 template <typename Key_t, typename Comp_t>
-typename do_tree<Key_t, Comp_t>::value_type do_tree<Key_t, Comp_t>::m_os_select (size_type i)
-{
-    if ( i > size () || !i )
-        throw std::out_of_range ("i is greater then the size of the tree or zero.");
-
-    auto curr = root ();
-
-    /* The rank of node is the size of left subtree plus 1. */
-    size_t rank = node::size (curr->m_left ()) + 1;
-
-    while ( rank != i )
-    {
-        if ( i < rank )
-            curr = curr->m_left ();
-        else
-        {
-            curr = curr->m_right ();
-
-            /* Reduce i, cause we've already passed ranksmallest nodes. */
-            i -= rank;
-        }
-        rank = node::size (curr->m_left ()) + 1;
-    }
-
-    return s_key (curr);
-}
-template <typename key, typename Comp_>
-typename do_tree<key, Comp_>::size_type do_tree<key, Comp_>::m_get_rank_of (iterator pos)
-{
-    if ( pos == end () )
-        throw std::out_of_range ("Element with the given key is not inserted.");
-
-    auto node = pos.m_node;
-
-    /* The rank of node is the size of left subtree plus 1. */
-    size_type rank = node::size (node->m_left ()) + 1;
-
-    while ( node != root () )
-    {
-        if ( !node->is_left_child () )
-            rank += node::size (node->m_parent->m_left ()) + 1;
-        node = node->m_parent;
-    }
-
-    return rank;
-}
-
-template <typename Key_t, typename Comp_t>
 template <typename F>
 std::tuple<typename do_tree<Key_t, Comp_t>::base_node_ptr,
            typename do_tree<Key_t, Comp_t>::base_node_ptr, bool>
 do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step)
 {
-    using res = std::tuple<node_ptr, node_ptr, bool>;
+    using res = typename std::tuple<base_node_ptr, base_node_ptr, bool>;
 
     auto prev = root ();
     auto curr = prev;
     if ( !curr )
-        return res (nullptr, nullptr, false);
+        return res {nullptr, nullptr, false};
 
-    bool Keyless {};
+    bool key_less {};
 
-    while ( curr && s_key (curr) != key )
+    while ( curr && static_cast<node_ptr> (curr)->m_value != key )
     {
-        Keyless = this->m_compare_struct.m_Keycompare (key, s_key (curr));
+        key_less =
+            this->m_compare_struct.m_value_compare (key, static_cast<node_ptr> (curr)->m_value);
         step (curr);
         prev = curr;
-        if ( Keyless )
-            curr = curr->m_left ();
+        if ( key_less )
+            curr = curr->m_left.get ();
         else
-            curr = curr->m_right ();
+            curr = curr->m_right.get ();
     }
 
     if ( curr == root () )
         step (curr);
 
-    return res (curr, prev, Keyless);
+    return res {curr, prev, key_less};
 }
 
 template <typename Key_t, typename Comp_t>
@@ -664,13 +570,14 @@ do_tree<Key_t, Comp_t>::m_insert_node (owning_ptr to_insert)
     }
 
     /* Find right position in the tree */
-    auto [found, prev, prev_greater] = m_trav_bin_search (
-        static_cast<node_ptr> (to_insert_ptr)->m_key, [] (node_ptr &node) { node->m_size++; });
+    auto [found, prev, prev_greater] =
+        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value,
+                           [] (base_node_ptr node) { node->m_size++; });
 
     if ( found )
     {
-        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_key,
-                           [] (node_ptr &node) { node->m_size--; });
+        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value,
+                           [] (base_node_ptr node) { node->m_size--; });
         throw std::out_of_range ("Element already inserted");
     }
     to_insert->m_parent = prev;
@@ -691,11 +598,10 @@ do_tree<Key_t, Comp_t>::m_insert_node (owning_ptr to_insert)
     return to_insert_ptr;
 }
 
-template <typename key, typename Comp_>
-typename do_tree<key, Comp_>::node_ptr do_tree<key, Comp_>::m_erase_pos_impl (iterator pos)
+template <typename Key_t, typename Comp_t> void do_tree<Key_t, Comp_t>::m_erase_pos (iterator pos)
 {
     auto to_erase   = pos.m_node;
-    node_ptr target = nullptr;
+    base_node_ptr target = nullptr;
 
     /* choose node's in-order successor if it has two children */
     if ( !to_erase->m_left || !to_erase->m_right )
@@ -703,21 +609,19 @@ typename do_tree<key, Comp_>::node_ptr do_tree<key, Comp_>::m_erase_pos_impl (it
         target = to_erase;
 
         /* Change leftmost or rightmost if needed */
-        if ( begin () == target )
-            begin () = target->m_successor_for_erase ();
-        if ( end () == target )
-            end () = target->m_predecessor_for_erase ();
+        if ( m_header_struct.m_leftmost == target )
+            m_header_struct.m_leftmost = target->m_successor_for_erase ();
+        if ( m_header_struct.m_rightmost == target )
+            m_header_struct.m_rightmost = target->m_predecessor_for_erase ();
     }
     else
     {
         target = to_erase->m_successor_for_erase (); /* to_erase->m_right exist, thus move down */
-        std::swap (s_key (target), s_key (to_erase));
+        std::swap (static_cast<node_ptr> (target)->m_value,
+                   static_cast<node_ptr> (to_erase)->m_value);
     }
 
     target->m_size--;
-
-    /* rebalancing target subtree */
-    m_rebalance_for_erase (target);
 
     auto child_u_ptr = std::move (target->m_left ? target->m_left : target->m_right);
 
@@ -730,182 +634,6 @@ typename do_tree<key, Comp_>::node_ptr do_tree<key, Comp_>::m_erase_pos_impl (it
         t_parent->m_left = std::move (child_u_ptr);
     else
         t_parent->m_right = std::move (child_u_ptr);
-
-    return target;
-}
-
-template <typename key, typename Comp_>
-void do_tree<key, Comp_>::m_rebalance_after_insert (node_ptr node)
-{
-
-    /*
-     * 1. update the balance factor of parent node;
-     * 2. rebalance if the balance factor of parent node temporarily becomes +2 or -2;
-     * 3. terminate if the height of that parent subtree remains unchanged.
-     */
-
-    auto curr   = node;
-    auto parent = curr->m_parent;
-
-    while ( curr != root () )
-    {
-        int &bf = parent->m_bf;
-        if ( curr->is_left_child () ) /* The height of left subtree of parent subtree increases */
-        {
-            if ( bf == 1 )
-            {
-                /* The height of parent subtree remains unchanged, thus backtracking terminate. */
-                bf = 0;
-                break;
-            }
-            else if ( bf == 0 )
-            {
-                /*
-                 * The height of parent subtree increases by one, thus backtracking continue.
-                 * Left-heavy.
-                 */
-                bf = -1;
-            }
-            else if ( bf == -1 )
-            {
-                /* The balance factor becomes -2, thus need to fix imbalance. */
-                parent->m_fix_left_imbalance_insert ();
-                break;
-            }
-            else
-                throw std::out_of_range ("Unexpected value of bf.");
-        }
-        else /* The height of right subtree of parent subtree increases */
-        {
-            if ( bf == -1 )
-            {
-                /* The height of parent subtree remains unchanged, thus backtracking terminate. */
-                bf = 0;
-                break;
-            }
-            else if ( bf == 0 )
-            {
-                /*
-                 * Height of parent subtree increases by one, thus backtracking continue.
-                 * Right-heavy.
-                 */
-                bf = 1;
-            }
-            else if ( bf == 1 )
-            {
-                /*
-                 * The balance factor becomes 2, thus need to fix imbalance.
-                 * After fixing parent tree has the same height, thus backtracking terminate.
-                 */
-                parent->m_fix_right_imbalance_insert ();
-                break;
-            }
-            else
-                throw std::out_of_range ("Unexpected value of bf.");
-        }
-        curr   = parent;
-        parent = curr->m_parent;
-    }
-}
-
-template <typename key, typename Comp_>
-void do_tree<key, Comp_>::m_rebalance_for_erase (node_ptr node)
-{
-
-    /*
-     * Backtracking algo:
-     * 1. update the balance factor of parent node;
-     * 2. rebalance if the balance factor of parent node temporarily becomes +2 or -2;
-     * 3. terminate if the height of that parent subtree remains unchanged.
-     */
-
-    auto curr   = node;
-    auto parent = node->m_parent;
-
-    while ( curr != root () )
-    {
-        auto &parent_bf = parent->m_bf;
-
-        if ( curr->is_left_child () ) /* The height of left subtree of parent subtree decreases. */
-        {
-            if ( parent_bf == -1 )
-                /* The height of parent subtree decreases by one, thus continue backtracking. */
-                parent_bf = 0;
-            else if ( parent_bf == 0 )
-            {
-                /* The height of parent subtree remains unchanged, thus backtracking terminate. */
-                parent_bf = 1;
-                break;
-            }
-            else if ( parent_bf == 1 )
-            {
-                /* The balance factor becomes 2, thus need to fix imbalance. */
-                parent->m_fix_right_imbalance_erase ();
-                break;
-            }
-            else
-                throw std::out_of_range ("Unexpected value of bf.");
-        }
-        else /* The height of right subtree of parent subtree decreases. */
-        {
-            if ( parent_bf == 1 )
-                /* The height of parent subtree decreases by one, thus continue backtracking. */
-                parent_bf = 0;
-            else if ( parent_bf == 0 )
-            {
-                /* The height of parent subtree remains unchanged, thus backtracking terminate. */
-                parent_bf = -1;
-                break;
-            }
-            else if ( parent_bf == -1 )
-            {
-                /* The balance factor becomes -2, thus need to fix imbalance. */
-                parent->m_fix_left_imbalance_erase ();
-                break;
-            }
-        }
-
-        curr   = parent;
-        parent = curr->m_parent;
-    }
-}
-
-// Accessors.
-template <typename key, typename Comp_>
-typename do_tree<key, Comp_>::iterator do_tree<key, Comp_>::m_lower_bound (node_ptr x, node_ptr y,
-                                                                           const value_type &k)
-{
-    while ( x )
-    {
-        bool Keybigger = this->m_compare_struct.m_Keycompare (s_key (x), k);
-        if ( !Keybigger )
-        {
-            y = x;
-            x = x->m_left ();
-        }
-        else
-            x = x->m_right ();
-    }
-    return iterator (y, this);
-}
-
-template <typename key, typename Comp_>
-typename do_tree<key, Comp_>::iterator do_tree<key, Comp_>::m_upper_bound (node_ptr x, node_ptr y,
-                                                                           const value_type &k)
-{
-    while ( x )
-    {
-        bool Keyless = this->m_compare_struct.m_Keycompare (k, s_key (x));
-        if ( Keyless )
-        {
-            y = x;
-            x = x->m_left ();
-        }
-        else
-            x = x->m_right ();
-    }
-    return iterator (y, this);
 }
 }   // namespace containers
-
 }   // namespace red
