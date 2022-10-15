@@ -211,10 +211,10 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     do_tree (const self &other)         = delete;
     self &operator= (const self &other) = delete;
 
-    do_tree (self &&other) noexcept
-        : m_compare_struct {std::move (other.m_compare_struct)}, m_header_struct {std::move (
-                                                                     other.m_header_struct)}
+    do_tree (self &&rhs) noexcept : m_compare_struct {Compare_t {}}
     {
+        std::swap (m_compare_struct, rhs.m_compare_struct);
+        std::swap (m_header_struct, rhs.m_header_struct);
     }
 
     self &operator= (self &&rhs) noexcept
