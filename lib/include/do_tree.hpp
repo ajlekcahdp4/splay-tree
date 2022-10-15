@@ -64,6 +64,13 @@ struct do_tree_node_base
 
     base_node_ptr rotate_left ();
     base_node_ptr rotate_right ();
+    base_node_ptr rotate_to_parent ()
+    {
+        if ( is_left_child () )
+            m_parent->rotate_right ();
+        else
+            m_parent->rotate_left ();
+    }
 
     bool is_left_child () const noexcept
     {
