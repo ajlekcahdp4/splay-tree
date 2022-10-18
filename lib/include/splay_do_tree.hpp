@@ -19,7 +19,7 @@ namespace containers
 {
 
 template <typename Key_t, typename Compare_t = std::less<Key_t>>
-struct splay_do_tree : public do_tree<Key_t, Compare_t>
+struct splay_do_tree final : public do_tree<Key_t, Compare_t>
 {
   private:
     using base_tree = do_tree<Key_t, Compare_t>;
@@ -35,6 +35,7 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
   public:
     using typename base_tree::iterator;
 
+  private:
     void splay (base_node_ptr node) const
     {
         assert (node);
@@ -76,29 +77,6 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
         left_max->m_size = left_max->m_left->m_size + left_max->m_right->m_size + 1;
     }
 
-    iterator find (const value_type &value)
-    {
-        auto [found, prev, prev_greater] =
-            base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
-        if ( !found )
-            return base_tree::end ();
-        splay (found);
-        return iterator {found, this};
-    }
-
-    base_node_ptr find_node_or_parent (const value_type &value)
-    {
-        auto [found, prev, prev_greater] =
-            base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
-        if ( !found )
-        {
-            splay (prev);
-            return prev;
-        }
-        splay (found);
-        return found;
-    }
-
     void erase (base_node_ptr node)
     {
         assert (node);
@@ -122,7 +100,6 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
 
             else
             {
-                // to_erase->m_right->m_parent = to_erase->m_left->m_parent = nullptr;
                 merge (to_erase->m_left.get (), to_erase->m_right.get ());
             }
         }
@@ -132,24 +109,7 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
         }
     }
 
-    void erase (const value_type &val)
-    {
-        auto [to_erase, prev, prev_greater] =
-            base_tree::m_trav_bin_search (val, [] (base_node_ptr) {});
-        if ( !to_erase )
-            throw std::out_of_range ("Element not present");
-        erase (to_erase);
-    }
-
     void erase (iterator pos) { erase (*pos); }
-
-    void insert (const value_type &val)
-    {
-        auto to_insert             = new node {val};
-        auto to_insert_base_unique = owning_ptr (static_cast<base_node_ptr> (to_insert));
-        auto inserted              = base_tree::m_insert_node (std::move (to_insert_base_unique));
-        splay (inserted);
-    }
 
     size_type get_rank_of (base_node_ptr node)
     {
@@ -162,6 +122,34 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
         }
         splay (node);
         return rank;
+    }
+
+  public:
+    iterator find (const value_type &value)
+    {
+        auto [found, prev, prev_greater] =
+            base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
+        if ( !found )
+            return base_tree::end ();
+        splay (found);
+        return iterator {found, this};
+    }
+
+    void erase (const value_type &val)
+    {
+        auto [to_erase, prev, prev_greater] =
+            base_tree::m_trav_bin_search (val, [] (base_node_ptr) {});
+        if ( !to_erase )
+            throw std::out_of_range ("Element not present");
+        erase (to_erase);
+    }
+
+    void insert (const value_type &val)
+    {
+        auto to_insert             = new node {val};
+        auto to_insert_base_unique = owning_ptr (static_cast<base_node_ptr> (to_insert));
+        auto inserted              = base_tree::m_insert_node (std::move (to_insert_base_unique));
+        splay (inserted);
     }
 
     size_type get_rank_of (iterator pos) { return get_rank_of (pos.m_node); }
