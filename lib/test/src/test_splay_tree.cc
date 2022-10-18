@@ -90,7 +90,8 @@ TEST (test_splay_do_tree, erase_the_last_one)
 TEST (test_splay_do_tree, erase_leftmost)
 {
     splay_do_tree tree;
-
+    for ( int i = 6; i <= 10; i++ )
+        tree.insert (i);
     EXPECT_EQ (*tree.begin (), 6);
     tree.erase (tree.begin ());
     EXPECT_EQ (*tree.begin (), 7);
@@ -99,7 +100,8 @@ TEST (test_splay_do_tree, erase_leftmost)
 TEST (test_splay_do_tree, erase_rightmost)
 {
     splay_do_tree tree;
-
+    for ( int i = 6; i <= 10; i++ )
+        tree.insert (i);
     auto last = std::prev (tree.end ());
     EXPECT_EQ (*last, 10);
 

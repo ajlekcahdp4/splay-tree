@@ -172,7 +172,7 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
             return iterator {nullptr, this};
 
         auto curr      = base_tree::root ();
-        size_type rank = curr->m_left->m_size + 1;
+        size_type rank = (curr->m_left.get () ? curr->m_left->m_size : 0) + 1;
         while ( rank != p_rank )
         {
             if ( p_rank < rank )
@@ -182,7 +182,7 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
                 curr = curr->m_right.get ();
                 p_rank -= rank;
             }
-            rank = curr->m_left->m_size + 1;
+            rank = (curr->m_left.get () ? curr->m_left->m_size : 0) + 1;
         }
         return iterator {curr, this};
     }
