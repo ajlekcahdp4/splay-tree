@@ -62,10 +62,17 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
     void merge (base_node_ptr left, base_node_ptr right)
     {
         auto left_max = left->m_maximum ();
+        this->dump ("merge.dot");
         splay (left_max);
-        left_max->m_right                      = owning_ptr (right);
+        if ( right->is_left_child () )
+            left_max->m_right = std::move (right->m_parent->m_left);
+        else
+            left_max->m_right = std::move (right->m_parent->m_right);
         right->m_parent                        = left_max;
-        this->m_header_struct.m_header->m_left = owning_ptr (left_max);
+        if ( left_max->is_left_child () )
+            this->m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_left);
+        else
+            this->m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_right);
         left_max->m_size = left_max->m_left->m_size + left_max->m_right->m_size + 1;
     }
 
@@ -115,8 +122,8 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
 
             else
             {
-                to_erase->m_right->m_parent = to_erase->m_left->m_parent = nullptr;
-                merge (to_erase->m_left.release (), to_erase->m_right.release ());
+                // to_erase->m_right->m_parent = to_erase->m_left->m_parent = nullptr;
+                merge (to_erase->m_left.get (), to_erase->m_right.get ());
             }
         }
         else
