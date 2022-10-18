@@ -56,9 +56,6 @@ struct do_tree_node_base
         return x;
     }
 
-    base_node_ptr m_predecessor_for_erase () noexcept;
-    base_node_ptr m_successor_for_erase () noexcept;
-
     base_node_ptr do_tree_increment () noexcept;
     base_node_ptr do_tree_decrement () noexcept;
 
@@ -67,17 +64,22 @@ struct do_tree_node_base
     base_node_ptr rotate_to_parent ()
     {
         if ( is_left_child () )
-            m_parent->rotate_right ();
+            return m_parent->rotate_right ();
         else
-            m_parent->rotate_left ();
+            return m_parent->rotate_left ();
     }
 
     bool is_left_child () const noexcept
     {
         return (m_parent ? this == m_parent->m_left.get () : false);
     }
-};
 
+    bool is_linear () const noexcept
+    {
+        return ((is_left_child () && m_parent->is_left_child ()) ||
+                (!is_left_child () && !m_parent->is_left_child ()));
+    }
+};
 // Helper type offering value initialization guarantee on the compare functor.
 template <class Compare_> struct do_tree_key_compare
 {
@@ -254,27 +256,9 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     template <typename F>
     std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step);
 
-    // Insert/erase.
-
   private:
     // actually insert node in AVL
     base_node_ptr m_insert_node (owning_ptr to_insert);
-
-    // erase node from the container without rebalancing
-    void m_erase_pos (iterator pos);
-
-    iterator m_find_for_erase (const value_type &key)
-    {
-        auto [found, prev, prev_greater] =
-            m_trav_bin_search (key, [] (base_node_ptr node) { node->m_size--; });
-        auto node = found;
-
-        if ( node )
-            return iterator {node, this};
-
-        m_trav_bin_search (key, [] (base_node_ptr node) { node->m_size++; });
-        throw std::out_of_range ("No element with requested key for erase.");
-    }
 
   public:
     iterator insert (const value_type &key)
@@ -285,67 +269,6 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
         auto res = m_insert_node (std::move (to_insert_base_unique));
 
         return iterator {res, this};
-    }
-
-    iterator find (const value_type &key)
-    {
-        auto [found, prev, prev_greater] = m_trav_bin_search (key, [] (base_node_ptr) {});
-        return iterator {found, this};
-    }
-
-    void erase (const value_type &key)
-    {
-        auto to_erase_pos = m_find_for_erase (key);
-        m_erase_pos (to_erase_pos);
-    }
-
-    void erase (iterator pos)
-    {
-        if ( pos != end () )
-        {
-            m_trav_bin_search (*pos, [] (base_node_ptr &node) { node->m_size--; });
-            m_erase_pos (pos);
-        }
-    }
-
-    iterator lower_bound (const value_type &val) const
-    {
-        base_node_ptr parent = nullptr;
-        base_node_ptr node   = root ();
-
-        while ( node )
-        {
-            bool key_bigger =
-                m_compare_struct.m_value_compare (static_cast<node_ptr> (node)->m_value, val);
-            if ( !key_bigger )
-            {
-                parent = node;
-                node   = node->m_left.get ();
-            }
-            else
-                node = node->m_right.get ();
-        }
-        return iterator {parent, this};
-    }
-
-    iterator upper_bound (const value_type &val) const
-    {
-        base_node_ptr parent = nullptr;
-        base_node_ptr node   = root ();
-
-        while ( node )
-        {
-            bool key_less =
-                m_compare_struct.m_value_compare (val, static_cast<node_ptr> (node)->m_value);
-            if ( key_less )
-            {
-                parent = node;
-                node   = node->m_left.get ();
-            }
-            else
-                node = node->m_right.get ();
-        }
-        return iterator {parent, this};
     }
 
     void clear () noexcept { m_header_struct.m_reset (); }
@@ -469,44 +392,6 @@ do_tree<Key_t, Comp_t>::m_insert_node (owning_ptr to_insert)
     }
 
     return to_insert_ptr;
-}
-
-template <typename Key_t, typename Comp_t> void do_tree<Key_t, Comp_t>::m_erase_pos (iterator pos)
-{
-    auto to_erase   = pos.m_node;
-    base_node_ptr target = nullptr;
-
-    /* choose node's in-order successor if it has two children */
-    if ( !to_erase->m_left || !to_erase->m_right )
-    {
-        target = to_erase;
-
-        /* Change leftmost or rightmost if needed */
-        if ( m_header_struct.m_leftmost == target )
-            m_header_struct.m_leftmost = target->m_successor_for_erase ();
-        if ( m_header_struct.m_rightmost == target )
-            m_header_struct.m_rightmost = target->m_predecessor_for_erase ();
-    }
-    else
-    {
-        target = to_erase->m_successor_for_erase (); /* to_erase->m_right exist, thus move down */
-        std::swap (static_cast<node_ptr> (target)->m_value,
-                   static_cast<node_ptr> (to_erase)->m_value);
-    }
-
-    target->m_size--;
-
-    auto child_u_ptr = std::move (target->m_left ? target->m_left : target->m_right);
-
-    if ( child_u_ptr )
-        child_u_ptr->m_parent = target->m_parent;
-
-    auto t_parent = target->m_parent;
-
-    if ( target->is_left_child () )
-        t_parent->m_left = std::move (child_u_ptr);
-    else
-        t_parent->m_right = std::move (child_u_ptr);
 }
 }   // namespace containers
 }   // namespace red
