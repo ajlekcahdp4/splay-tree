@@ -109,8 +109,6 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         }
     }
 
-    void erase (iterator pos) { erase (*pos); }
-
     size_type get_rank_of (base_node_ptr node)
     {
         size_type rank = (node->m_left.get () ? node->m_left->m_size + 1 : 1);
@@ -134,6 +132,8 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         splay (found);
         return iterator {found, this};
     }
+
+    void erase (iterator pos) { erase (*pos); }
 
     void erase (const value_type &val)
     {
