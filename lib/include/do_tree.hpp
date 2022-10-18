@@ -76,8 +76,7 @@ struct do_tree_node_base
 
     bool is_linear () const noexcept
     {
-        return ((is_left_child () && m_parent->is_left_child ()) ||
-                (!is_left_child () && !m_parent->is_left_child ()));
+        return m_parent && (is_left_child () == m_parent->is_left_child ());
     }
 };
 // Helper type offering value initialization guarantee on the compare functor.
@@ -210,7 +209,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     using size_type = typename node::size_type;
 
-  private:
+  protected:
     base_node_ptr root () const noexcept { return m_header_struct.m_header->m_left.get (); }
 
   public:
@@ -256,7 +255,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     template <typename F>
     std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step);
 
-  private:
+  protected:
     // actually insert node in AVL
     base_node_ptr m_insert_node (owning_ptr to_insert);
 
@@ -311,6 +310,8 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
                 p_stream << "\tnode0_r_" << *pos
                          << " [label = \"\", shape=triangle, style=filled, fillcolor=black];\n";
             }
+            p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_parent
+                     << " [color=red];\n";
         }
         p_stream << "}\n";
     }

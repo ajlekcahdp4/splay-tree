@@ -11,18 +11,25 @@
 
 #include "do_tree.hpp"
 
+#include <cassert>
+
 namespace red
 {
 namespace containers
 {
 
-template <typename Key_t, Compare_t = std::less<Key_t>>
+template <typename Key_t, typename Compare_t = std::less<Key_t>>
 struct splay_do_tree : public do_tree<Key_t, Compare_t>
 {
   private:
     using base_tree = do_tree<Key_t, Compare_t>;
     using typename base_tree::base_node_ptr;
+    using typename base_tree::node;
     using typename base_tree::node_ptr;
+    using typename base_tree::owning_ptr;
+    using typename base_tree::size_type;
+    using typename base_tree::value_type;
+
     using self = splay_do_tree<Key_t, Compare_t>;
 
   public:
@@ -30,21 +37,24 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
 
     void splay (base_node_ptr node) const
     {
-        while ( node->m_parent )
+        assert (node);
+        while ( node != base_tree::root () )
         {
-            if ( !node->m_parent->m_parent )
+            if ( node->m_parent == base_tree::root () )
                 node->rotate_to_parent ();
             else
+            {
                 bool zigzig = node->is_linear ();
-            if ( zigzig )
-            {
-                node->m_parent->rotate_to_parent ();
-                node->rotate_to_parent ();
-            }
-            else
-            {
-                node->rotate_to_parent ();
-                node->rotate_to_parent ();
+                if ( zigzig )
+                {
+                    node->m_parent->rotate_to_parent ();
+                    node->rotate_to_parent ();
+                }
+                else
+                {
+                    node->rotate_to_parent ();
+                    node->rotate_to_parent ();
+                }
             }
         }
     }
@@ -54,55 +64,71 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
         auto left_max = left->m_maximum ();
         splay (left_max);
         left_max->m_right                      = owning_ptr (right);
-        right->m_prent                         = left_max;
+        right->m_parent                        = left_max;
         this->m_header_struct.m_header->m_left = owning_ptr (left_max);
-        left_max->m_size = left_max->m_left->m_size () + left_max->m_right->m_size () + 1;
+        left_max->m_size = left_max->m_left->m_size + left_max->m_right->m_size + 1;
     }
 
     iterator find (const value_type &value)
     {
-        auto [found, prev, prev_greater] = this->m_trav_bin_search (value, [] (base_node_ptr) {});
+        auto [found, prev, prev_greater] =
+            base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
         if ( !found )
-            return this->end ();
+            return base_tree::end ();
         splay (found);
         return iterator {found, this};
     }
 
+    base_node_ptr find_node_or_parent (const value_type &value)
+    {
+        auto [found, prev, prev_greater] =
+            base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
+        if ( !found )
+        {
+            splay (prev);
+            return prev;
+        }
+        splay (found);
+        return found;
+    }
+
     void erase (base_node_ptr node)
     {
+        assert (node);
         auto to_erase = node;
 
-        if ( size () > 1 )
+        if ( base_tree::size () > 1 )
         {
             splay (to_erase);
             if ( !to_erase->m_left )
             {
-                this->m_header_struct.m_header->m_left           = std::move (to_erase->m_right);
-                this->m_header_struct.m_header->m_left->m_parent = nullptr;
-                this->m_header_struct.m_leftmost                 = to_erase->do_tree_increment ();
+                base_tree::m_header_struct.m_leftmost = base_tree::root ()->do_tree_increment ();
+                base_tree::m_header_struct.m_header->m_left = std::move (to_erase->m_right);
+                base_tree::root ()->m_parent = base_tree::m_header_struct.m_header.get ();
             }
             else if ( !to_erase->m_right )
             {
-                this->m_header_struct.m_header->m_left           = std::move (to_erase->m_left);
-                this->m_header_struct.m_header->m_left->m_parent = nullptr;
-                this->m_header_struct.m_rightmost                = to_erase->do_tree_decrement ();
+                base_tree::m_header_struct.m_rightmost = base_tree::root ()->do_tree_decrement ();
+                base_tree::m_header_struct.m_header->m_left = std::move (to_erase->m_left);
+                base_tree::root ()->m_parent = base_tree::m_header_struct.m_header.get ();
             }
 
             else
             {
                 to_erase->m_right->m_parent = to_erase->m_left->m_parent = nullptr;
-                merge (to_erase->m_left.release (), to_erase->m_left.release ());
+                merge (to_erase->m_left.release (), to_erase->m_right.release ());
             }
         }
         else
         {
-            m_header_struct.m_reset ();
+            base_tree::m_header_struct.m_reset ();
         }
     }
 
     void erase (const value_type &val)
     {
-        auto [to_erase, prev, prev_greater] = m_trav_bin_search (val, [] (base_node_ptr) {});
+        auto [to_erase, prev, prev_greater] =
+            base_tree::m_trav_bin_search (val, [] (base_node_ptr) {});
         if ( !to_erase )
             throw std::out_of_range ("Element not present");
         erase (to_erase);
@@ -114,32 +140,67 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
     {
         auto to_insert             = new node {val};
         auto to_insert_base_unique = owning_ptr (static_cast<base_node_ptr> (to_insert));
-        auto inserted              = m_insert_node (std::move (to_insert_base_unique));
+        auto inserted              = base_tree::m_insert_node (std::move (to_insert_base_unique));
         splay (inserted);
     }
 
     size_type get_rank_of (base_node_ptr node)
     {
         size_type rank = (node->m_left.get () ? node->m_left->m_size + 1 : 1);
-        while ( node != root () )
+        while ( node != base_tree::root () )
         {
             if ( !node->is_left_child () )
-                rank += (node->m_parent->m_left.get () ? node->m_parent->m_left->m_size + 1 : 1)
-                    node = node->m_parent;
+                rank += (node->m_parent->m_left.get () ? node->m_parent->m_left->m_size + 1 : 1);
+            node = node->m_parent;
         }
         splay (node);
         return rank;
     }
 
+    size_type get_rank_of (iterator pos) { return get_rank_of (pos.m_node); }
+
+    iterator os_select (size_type p_rank)
+    {
+        if ( p_rank > base_tree::size () || !p_rank )
+            return iterator {nullptr, this};
+
+        auto curr      = base_tree::root ();
+        size_type rank = curr->m_left->m_size + 1;
+        while ( rank != p_rank )
+        {
+            if ( p_rank < rank )
+                curr = curr->m_left.get ();
+            else
+            {
+                curr = curr->m_right.get ();
+                p_rank -= rank;
+            }
+            rank = curr->m_left->m_size + 1;
+        }
+        return iterator {curr, this};
+    }
+
+    size_type get_number_less_then (value_type val)
+    {
+        if ( base_tree::empty () )
+            return 0;
+        const auto &min_val =
+            static_cast<node_ptr> (base_tree::m_header_struct.m_leftmost)->m_value;
+        if ( base_tree::m_compare_struct.m_value_compare (val, min_val) || val == min_val )
+            return 0;
+        auto closest_left = --upper_bound (val);
+        auto rank         = get_rank_of (closest_left);
+        return (*closest_left == val ? rank - 1 : rank);
+    }
+
     iterator lower_bound (const value_type &val) const
     {
+        base_node_ptr node   = base_tree::root ();
         base_node_ptr parent = nullptr;
-        base_node_ptr node   = root ();
-
         while ( node )
         {
-            bool key_bigger =
-                m_compare_struct.m_value_compare (static_cast<node_ptr> (node)->m_value, val);
+            bool key_bigger = base_tree::m_compare_struct.m_value_compare (
+                static_cast<node_ptr> (node)->m_value, val);
             if ( !key_bigger )
             {
                 parent = node;
@@ -148,19 +209,19 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
             else
                 node = node->m_right.get ();
         }
-        splay (parent);
+        if ( parent )
+            splay (parent);
         return iterator {parent, this};
     }
 
     iterator upper_bound (const value_type &val) const
     {
+        base_node_ptr node   = base_tree::root ();
         base_node_ptr parent = nullptr;
-        base_node_ptr node   = root ();
-
         while ( node )
         {
-            bool key_less =
-                m_compare_struct.m_value_compare (val, static_cast<node_ptr> (node)->m_value);
+            bool key_less = base_tree::m_compare_struct.m_value_compare (
+                val, static_cast<node_ptr> (node)->m_value);
             if ( key_less )
             {
                 parent = node;
@@ -169,7 +230,8 @@ struct splay_do_tree : public do_tree<Key_t, Compare_t>
             else
                 node = node->m_right.get ();
         }
-        splay (parent);
+        if ( parent )
+            splay (parent);
         return iterator {parent, this};
     }
 };
