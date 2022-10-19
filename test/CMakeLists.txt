@@ -1,2 +1,4 @@
 add_subdirectory(queries)
-add_subdirectory(benchmark)
+if (COMPARE)
+    add_subdirectory(benchmark)
+endif()

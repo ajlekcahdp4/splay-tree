@@ -15,8 +15,6 @@ import json
 import numpy as np
 import random
 
-usage_string = "gentest.py -n <num> -o output"
-
 def number_between (elements: list, l_bound: int, r_bound: int):
     cnt = 0
     for elem in elements:

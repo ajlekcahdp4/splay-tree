@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder="../resources"
+base_folder="resources"
 
 
 current_folder=${2:-./}

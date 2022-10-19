@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder="../resources"
+base_folder="resources"
 
 red=`tput setaf 1`
 green=`tput setaf 2`
