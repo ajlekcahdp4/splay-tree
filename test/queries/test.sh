@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder="resources"
+base_folder="../resources"
 
 red=`tput setaf 1`
 green=`tput setaf 2`
@@ -10,7 +10,6 @@ current_folder=${2:-./}
 passed=true
 
 for file in ${current_folder}/${base_folder}/test*.dat; do
-
     echo -n "Testing ${green}${file}${reset} ... "
 
     # Check if an argument to executable location has been passed to the program

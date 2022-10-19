@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.14)
-set (CMAKE_CXX_STANDARD 17)
 
 project (splay-tree)
 
@@ -8,7 +7,9 @@ if((${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR}) AND NOT ${INSOURCEBUIL
     message(FATAL_ERROR "In-source building disabled. Provide -DINSOURCEBUILD option if you are sure about it.")
 endif()
 
-add_compile_options(-Wall -Wextra)
+set (CMAKE_CXX_STANDARD 17)
+
+add_compile_options(-Wall -Wextra -O2)
 
 set (SPLAY_TREE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
 

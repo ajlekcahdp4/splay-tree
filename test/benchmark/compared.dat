@@ -1,0 +1,80 @@
+Testing .//../resources/test0.dat ...
+	red::container::splay_set took 3.20123ms to run
+	std::set took 4.9e-05ms to run
+
+Testing .//../resources/test10.dat ...
+	red::container::splay_set took 5.37745ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test11.dat ...
+	red::container::splay_set took 3.27237ms to run
+	std::set took 3e-05ms to run
+
+Testing .//../resources/test12.dat ...
+	red::container::splay_set took 7.87611ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test13.dat ...
+	red::container::splay_set took 8.523ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test14.dat ...
+	red::container::splay_set took 9.6983ms to run
+	std::set took 3.5e-05ms to run
+
+Testing .//../resources/test15.dat ...
+	red::container::splay_set took 4.84173ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test16.dat ...
+	red::container::splay_set took 4.99222ms to run
+	std::set took 2.6e-05ms to run
+
+Testing .//../resources/test17.dat ...
+	red::container::splay_set took 3.34082ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test18.dat ...
+	red::container::splay_set took 4.42089ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test19.dat ...
+	red::container::splay_set took 5.46ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test1.dat ...
+	red::container::splay_set took 3.97771ms to run
+	std::set took 2.7e-05ms to run
+
+Testing .//../resources/test2.dat ...
+	red::container::splay_set took 3.00874ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test3.dat ...
+	red::container::splay_set took 4.77789ms to run
+	std::set took 2.9e-05ms to run
+
+Testing .//../resources/test4.dat ...
+	red::container::splay_set took 8.39935ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test5.dat ...
+	red::container::splay_set took 7.74447ms to run
+	std::set took 3.5e-05ms to run
+
+Testing .//../resources/test6.dat ...
+	red::container::splay_set took 8.85531ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test7.dat ...
+	red::container::splay_set took 4.32316ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test8.dat ...
+	red::container::splay_set took 6.8518ms to run
+	std::set took 2.8e-05ms to run
+
+Testing .//../resources/test9.dat ...
+	red::container::splay_set took 7.73238ms to run
+	std::set took 2.9e-05ms to run
+

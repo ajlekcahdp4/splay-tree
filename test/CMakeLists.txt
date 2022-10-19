@@ -1,1 +1,2 @@
 add_subdirectory(queries)
+add_subdirectory(benchmark)
