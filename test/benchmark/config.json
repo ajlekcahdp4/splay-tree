@@ -1,12 +1,12 @@
 {
     "number": 5,
     "inserts": {
-        "min": 131072,
-        "max": 262144
+        "min": 32768,
+        "max": 131072
     },
     "requests": {
         "min": 32768,
-        "max": 131072
+        "max": 65536
     },
     "integers": {
         "min": 16384,

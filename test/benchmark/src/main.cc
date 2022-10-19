@@ -33,6 +33,7 @@ queries_splay (const std::vector<int> &elements, const std::vector<std::pair<int
         auto l_rank = (it_l == set.end () ? 0 : set.get_rank_of (it_l));
         auto r_rank = (it_r == set.end () ? 0 : set.get_rank_of (it_r));
         auto res    = r_rank - l_rank;
+        asm("" ::"r"(res));
     }
     auto splay_finish = std::chrono::high_resolution_clock::now ();
     return std::chrono::duration<double, std::milli> (splay_finish - splay_start);
@@ -58,6 +59,7 @@ queries_stl (const std::vector<int> &elements, const std::vector<std::pair<int, 
     {
         auto [l_bound, r_bound] = elem;
         auto res                = get_number_in_range (set, l_bound, r_bound);
+        asm("" ::"r"(res));
     }
     auto stl_finish = std::chrono::high_resolution_clock::now ();
     return std::chrono::duration<double, std::milli> (stl_finish - stl_start);
