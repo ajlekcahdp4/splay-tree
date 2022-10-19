@@ -20,7 +20,7 @@ usage_string = "gentest.py -n <num> -o output"
 def number_between (elements: list, l_bound: int, r_bound: int):
     cnt = 0
     for elem in elements:
-        if (elem >= r_bound):
+        if (elem > r_bound):
             break
         if (elem >= l_bound):
             cnt += 1

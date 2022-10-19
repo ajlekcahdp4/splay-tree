@@ -9,7 +9,7 @@ endif()
 
 set (CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Wextra -O2)
+add_compile_options(-Wall -Wextra -O0)
 
 set (SPLAY_TREE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
 

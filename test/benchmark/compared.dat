@@ -1,80 +1,80 @@
-Testing .//../resources/test0.dat ...
-	red::container::splay_set took 3.20123ms to run
-	std::set took 4.9e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test0.dat ...
+	red::container::splay_set took 70.66ms to run
+	std::set took 110.854ms to run
 
-Testing .//../resources/test10.dat ...
-	red::container::splay_set took 5.37745ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test10.dat ...
+	red::container::splay_set took 90.8001ms to run
+	std::set took 196.772ms to run
 
-Testing .//../resources/test11.dat ...
-	red::container::splay_set took 3.27237ms to run
-	std::set took 3e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test11.dat ...
+	red::container::splay_set took 48.0629ms to run
+	std::set took 239.278ms to run
 
-Testing .//../resources/test12.dat ...
-	red::container::splay_set took 7.87611ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test12.dat ...
+	red::container::splay_set took 86.6069ms to run
+	std::set took 379.074ms to run
 
-Testing .//../resources/test13.dat ...
-	red::container::splay_set took 8.523ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test13.dat ...
+	red::container::splay_set took 33.0113ms to run
+	std::set took 169.028ms to run
 
-Testing .//../resources/test14.dat ...
-	red::container::splay_set took 9.6983ms to run
-	std::set took 3.5e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test14.dat ...
+	red::container::splay_set took 23.4009ms to run
+	std::set took 33.3616ms to run
 
-Testing .//../resources/test15.dat ...
-	red::container::splay_set took 4.84173ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test15.dat ...
+	red::container::splay_set took 82.4942ms to run
+	std::set took 205.958ms to run
 
-Testing .//../resources/test16.dat ...
-	red::container::splay_set took 4.99222ms to run
-	std::set took 2.6e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test16.dat ...
+	red::container::splay_set took 41.4398ms to run
+	std::set took 149.201ms to run
 
-Testing .//../resources/test17.dat ...
-	red::container::splay_set took 3.34082ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test17.dat ...
+	red::container::splay_set took 33.052ms to run
+	std::set took 192.095ms to run
 
-Testing .//../resources/test18.dat ...
-	red::container::splay_set took 4.42089ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test18.dat ...
+	red::container::splay_set took 80.1896ms to run
+	std::set took 122.319ms to run
 
-Testing .//../resources/test19.dat ...
-	red::container::splay_set took 5.46ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test19.dat ...
+	red::container::splay_set took 56.7518ms to run
+	std::set took 253.409ms to run
 
-Testing .//../resources/test1.dat ...
-	red::container::splay_set took 3.97771ms to run
-	std::set took 2.7e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test1.dat ...
+	red::container::splay_set took 71.6235ms to run
+	std::set took 345.846ms to run
 
-Testing .//../resources/test2.dat ...
-	red::container::splay_set took 3.00874ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test2.dat ...
+	red::container::splay_set took 54.423ms to run
+	std::set took 179.217ms to run
 
-Testing .//../resources/test3.dat ...
-	red::container::splay_set took 4.77789ms to run
-	std::set took 2.9e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test3.dat ...
+	red::container::splay_set took 63.1457ms to run
+	std::set took 252.707ms to run
 
-Testing .//../resources/test4.dat ...
-	red::container::splay_set took 8.39935ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test4.dat ...
+	red::container::splay_set took 80.466ms to run
+	std::set took 400.179ms to run
 
-Testing .//../resources/test5.dat ...
-	red::container::splay_set took 7.74447ms to run
-	std::set took 3.5e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test5.dat ...
+	red::container::splay_set took 71.9663ms to run
+	std::set took 151.67ms to run
 
-Testing .//../resources/test6.dat ...
-	red::container::splay_set took 8.85531ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test6.dat ...
+	red::container::splay_set took 43.3631ms to run
+	std::set took 134.439ms to run
 
-Testing .//../resources/test7.dat ...
-	red::container::splay_set took 4.32316ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test7.dat ...
+	red::container::splay_set took 84.0487ms to run
+	std::set took 421.084ms to run
 
-Testing .//../resources/test8.dat ...
-	red::container::splay_set took 6.8518ms to run
-	std::set took 2.8e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test8.dat ...
+	red::container::splay_set took 106.008ms to run
+	std::set took 539.584ms to run
 
-Testing .//../resources/test9.dat ...
-	red::container::splay_set took 7.73238ms to run
-	std::set took 2.9e-05ms to run
+Testing /home/alex/cpp/splay-tree/test/benchmark/../resources/test9.dat ...
+	red::container::splay_set took 28.6141ms to run
+	std::set took 82.1433ms to run
 

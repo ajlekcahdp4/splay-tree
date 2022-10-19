@@ -29,6 +29,12 @@ int main ()
         assert (std::cin.good ());
         if ( r_bound < l_bound )
             throw std::runtime_error ("Invalid request range");
-        std::cout << set.get_number_less_then (r_bound) - set.get_number_less_then (l_bound) << " ";
+
+        auto it_l = set.lower_bound (l_bound);
+        auto it_r = set.upper_bound (r_bound);
+
+        auto l_rank = (it_l == set.end () ? 0 : set.get_rank_of (it_l));
+        auto r_rank = (it_r == set.end () ? 0 : set.get_rank_of (it_r));
+        std::cout << r_rank - l_rank << " ";
     }
 }
