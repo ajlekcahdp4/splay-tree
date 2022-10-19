@@ -1,0 +1,16 @@
+{
+    "number": 5,
+    "inserts": {
+        "min": 32768,
+        "max": 131072
+    },
+    "requests": {
+        "min": 32768,
+        "max": 65536
+    },
+    "integers": {
+        "min": 16384,
+        "max": 1048576
+    },
+    "output_path": "./resources/"
+}

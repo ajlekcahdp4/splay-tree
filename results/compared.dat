@@ -1,0 +1,20 @@
+Testing /home/alex/cpp/splay-tree/test/benchmark/resources/test0.dat ...
+	red::container::splay_set took 38.987ms to run
+	std::set took 7690.89ms to run
+
+Testing /home/alex/cpp/splay-tree/test/benchmark/resources/test1.dat ...
+	red::container::splay_set took 75.8231ms to run
+	std::set took 40258.2ms to run
+
+Testing /home/alex/cpp/splay-tree/test/benchmark/resources/test2.dat ...
+	red::container::splay_set took 45.2659ms to run
+	std::set took 22377.9ms to run
+
+Testing /home/alex/cpp/splay-tree/test/benchmark/resources/test3.dat ...
+	red::container::splay_set took 55.4991ms to run
+	std::set took 19642.9ms to run
+
+Testing /home/alex/cpp/splay-tree/test/benchmark/resources/test4.dat ...
+	red::container::splay_set took 40.8245ms to run
+	std::set took 19326.4ms to run
+

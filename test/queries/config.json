@@ -1,0 +1,16 @@
+{
+    "number": 20,
+    "inserts": {
+        "min": 4096,
+        "max": 16384
+    },
+    "requests": {
+        "min": 4096,
+        "max": 16384
+    },
+    "integers": {
+        "min": 16384,
+        "max": 1048576
+    },
+    "output_path": "./resources/"
+}
