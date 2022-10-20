@@ -22,5 +22,5 @@ cd test/benchmark
 ./test.sh
 ```
 ## Results
-If you want to see the results of comparison with std::set in the tasks of finding kth smallest elemet in a set and finding the number of elements smaller then the given one you can check this [file](results/compared.dat) or enable comparation and test it again..
+If you want to see the results of comparison with std::set in the tasks of finding kth smallest elemet in a set and finding the number of elements smaller then the given one you can check this [file](results/compared.dat) or enable comparison and test it again..
 
