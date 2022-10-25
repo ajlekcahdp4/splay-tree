@@ -18,7 +18,7 @@ find_package(GTest REQUIRED)
 set(NOGTEST FALSE ON CACHE BOOL "Disable GoogleTest")
 set (COMPARE FALSE ON CACHE BOOL "Disable comparison with std::set")
 if (COMPARE)
-    message(WARNING "Comparation with std::test enabled. It should take a lot of time. If you want to disable it rerun with -DNOCOMPARE=TRUE")
+    message(WARNING "Comparation with std::test enabled. It should take a lot of time. If you want to disable it rerun with -DCOMPARE=False")
 endif()
 
 enable_testing()

@@ -29,10 +29,8 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_increment (
         prev = prev->m_parent;
     }
     if ( prev->m_parent )
-        curr = prev;
-    else
-        curr = nullptr;
-    return curr;
+        return prev;
+    return nullptr;
 }
 
 typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement () noexcept
@@ -50,9 +48,8 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement (
         prev = prev->m_parent;
     }
     if ( prev->m_parent )
-        curr = prev;
-    else
-        curr = nullptr;
+        return prev;
+    return nullptr;
 
     return curr;
 }
@@ -69,15 +66,18 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_left ()
         node->m_right->m_parent = node;
 
     rchild_ptr->m_parent = parent;
-    if ( node->is_left_child () && parent )
+    if ( parent )
     {
-        rchild_ptr->m_left = std::move (parent->m_left);
-        parent->m_left     = owning_ptr (rchild_ptr);
-    }
-    else if ( parent )
-    {
-        rchild_ptr->m_left = std::move (parent->m_right);
-        parent->m_right    = owning_ptr (rchild_ptr);
+        if ( node->is_left_child () )
+        {
+            rchild_ptr->m_left = std::move (parent->m_left);
+            parent->m_left     = owning_ptr (rchild_ptr);
+        }
+        else if ( parent )
+        {
+            rchild_ptr->m_left = std::move (parent->m_right);
+            parent->m_right    = owning_ptr (rchild_ptr);
+        }
     }
 
     node->m_parent = rchild_ptr;
@@ -101,16 +101,18 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_right ()
         node->m_left->m_parent = node;
 
     lchild_ptr->m_parent = parent;
-    if ( node->is_left_child () && parent )
+    if ( parent )
     {
-        lchild_ptr->m_right = std::move (parent->m_left);
-        parent->m_left      = owning_ptr (lchild_ptr);
-    }
-    else if ( parent )
-    {
-
-        lchild_ptr->m_right = std::move (parent->m_right);
-        parent->m_right     = owning_ptr (lchild_ptr);
+        if ( node->is_left_child () )
+        {
+            lchild_ptr->m_right = std::move (parent->m_left);
+            parent->m_left      = owning_ptr (lchild_ptr);
+        }
+        else if ( parent )
+        {
+            lchild_ptr->m_right = std::move (parent->m_right);
+            parent->m_right     = owning_ptr (lchild_ptr);
+        }
     }
 
     node->m_parent = lchild_ptr;

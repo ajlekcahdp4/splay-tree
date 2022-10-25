@@ -193,7 +193,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
         bool operator== (const self &other) const noexcept { return m_node == other.m_node; }
 
-        bool operator!= (const self &other) const noexcept { return m_node != other.m_node; }
+        bool operator!= (const self &other) const noexcept { return !(*this == other); }
 
         base_node_ptr m_node                    = nullptr;
         const do_tree<Key_t, Compare_t> *m_tree = nullptr;
