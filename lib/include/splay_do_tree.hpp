@@ -49,13 +49,12 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
                 if ( zigzig )
                 {
                     node->m_parent->rotate_to_parent ();
-                    node->rotate_to_parent ();
                 }
                 else
                 {
                     node->rotate_to_parent ();
-                    node->rotate_to_parent ();
                 }
+                node->rotate_to_parent ();
             }
         }
     }
@@ -63,7 +62,6 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
     void merge (base_node_ptr left, base_node_ptr right)
     {
         auto left_max = left->m_maximum ();
-        this->dump ("merge.dot");
         splay (left_max);
         if ( right->is_left_child () )
             left_max->m_right = std::move (right->m_parent->m_left);
@@ -71,9 +69,9 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
             left_max->m_right = std::move (right->m_parent->m_right);
         right->m_parent                        = left_max;
         if ( left_max->is_left_child () )
-            this->m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_left);
+            base_tree::m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_left);
         else
-            this->m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_right);
+            base_tree::m_header_struct.m_header->m_left = std::move (left_max->m_parent->m_right);
         left_max->m_size = left_max->m_left->m_size + left_max->m_right->m_size + 1;
     }
 

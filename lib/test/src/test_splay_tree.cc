@@ -162,6 +162,18 @@ TEST (test_splay_do_tree, delete_all)
     EXPECT_TRUE (tree.empty ());
 }
 
+TEST (test_splay_do_tree, test_distance)
+{
+    splay_do_tree tree;
+
+    for ( int i = 1; i <= 10; i++ )
+        tree.insert (i);
+
+    auto it1 = tree.find (3);
+    auto it2 = tree.find (9);
+    EXPECT_EQ (std::distance (it1, it2), 6);
+}
+
 TEST (Test_set, Test_select_1)
 {
     splay_do_tree tree;

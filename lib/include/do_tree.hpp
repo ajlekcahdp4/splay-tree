@@ -246,11 +246,11 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     size_type size () const noexcept
     {
-        auto root = this->root ();
+        auto root = self::root ();
         return (root ? node::size (root) : 0);
     }
 
-    bool empty () const noexcept { return (size () == 0); }
+    bool empty () const noexcept { return !size (); }
 
     template <typename F>
     std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step);
@@ -335,7 +335,7 @@ do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step)
     while ( curr && static_cast<node_ptr> (curr)->m_value != key )
     {
         key_less =
-            this->m_compare_struct.m_value_compare (key, static_cast<node_ptr> (curr)->m_value);
+            self::m_compare_struct.m_value_compare (key, static_cast<node_ptr> (curr)->m_value);
         step (curr);
         prev = curr;
         if ( key_less )

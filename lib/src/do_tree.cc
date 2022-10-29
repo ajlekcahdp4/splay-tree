@@ -50,8 +50,6 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement (
     if ( prev->m_parent )
         return prev;
     return nullptr;
-
-    return curr;
 }
 
 typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_left ()
