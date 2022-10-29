@@ -15,9 +15,11 @@ ctest
 cd test/queries
 bin/queries < resources/test0.dat
 # to run only comparison:
+# Availible only if -DCOMPARE=TRUE was provided
 cd test/benchmark
 bin/benchmark < resources/test0.dat
 # to compare on all the tests:
+# Availible only if -DCOMPARE=TRUE was provided
 cd test/benchmark
 ./test.sh
 ```
