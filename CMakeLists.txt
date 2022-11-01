@@ -13,7 +13,7 @@ add_compile_options(-Wall -Wextra -O2)
 
 set (SPLAY_TREE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
 
-find_package(GTest REQUIRED)
+find_package(GTest)
 
 set(NOGTEST FALSE ON CACHE BOOL "Disable GoogleTest")
 set (COMPARE FALSE ON CACHE BOOL "Disable comparison with std::set")
