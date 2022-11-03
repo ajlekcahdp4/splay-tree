@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
+// splay tree wrapper for do_tree
+
 #pragma once
 
 #include "do_tree.hpp"

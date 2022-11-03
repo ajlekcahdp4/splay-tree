@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
+// do_tree functions implementation
+
 #include "do_tree.hpp"
 
 namespace red

@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------------
  */
 
+// basic dynamic order binary search tree implementation without any balancing tools.
+
 #pragma once
 
 #include <algorithm>
