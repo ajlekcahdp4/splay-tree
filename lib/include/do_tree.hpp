@@ -58,8 +58,8 @@ struct do_tree_node_base
         return x;
     }
 
-    base_node_ptr do_tree_increment ();
-    base_node_ptr do_tree_decrement ();
+    base_node_ptr do_tree_increment () const;
+    base_node_ptr do_tree_decrement () const;
 
     base_node_ptr rotate_left ();
     base_node_ptr rotate_right ();
@@ -82,7 +82,7 @@ template <class Compare_> struct do_tree_key_compare
 
     do_tree_key_compare (const Compare_ &comp) : m_value_compare (comp) {}
 
-    template <typename Key> bool operator() (const Key &k1, const Key &k2)
+    template <typename Key> bool operator() (const Key &k1, const Key &k2) const
     {
         return m_value_compare (k1, k2);
     }
@@ -236,9 +236,9 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     iterator end () const { return iterator {nullptr, this}; }
 
-    reverse_iterator rbegin () { return reverse_iterator {end ()}; }
+    reverse_iterator rbegin () const { return reverse_iterator {end ()}; }
 
-    reverse_iterator rend () { return reverse_iterator {begin ()}; }
+    reverse_iterator rend () const { return reverse_iterator {begin ()}; }
 
     size_type size () const
     {
@@ -249,7 +249,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     bool empty () const { return !size (); }
 
     template <typename F>
-    std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step);
+    std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step) const;
 
   protected:
     // actually insert node in AVL
@@ -317,7 +317,7 @@ template <typename Key_t, typename Comp_t>
 template <typename F>
 std::tuple<typename do_tree<Key_t, Comp_t>::base_node_ptr,
            typename do_tree<Key_t, Comp_t>::base_node_ptr, bool>
-do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step)
+do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
 {
     using res = typename std::tuple<base_node_ptr, base_node_ptr, bool>;
 

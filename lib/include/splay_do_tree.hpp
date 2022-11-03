@@ -109,7 +109,7 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         }
     }
 
-    size_type get_rank_of (base_node_ptr node)
+    size_type get_rank_of (base_node_ptr node) const
     {
         size_type rank = (node->m_left.get () ? node->m_left->m_size + 1 : 1);
         while ( node != base_tree::root () )
@@ -123,7 +123,7 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
     }
 
   public:
-    iterator find (const value_type &value)
+    iterator find (const value_type &value) const
     {
         auto [found, prev, prev_greater] =
             base_tree::m_trav_bin_search (value, [] (base_node_ptr) {});
@@ -152,9 +152,9 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         splay (inserted);
     }
 
-    size_type get_rank_of (iterator pos) { return get_rank_of (pos.m_node); }
+    size_type get_rank_of (iterator pos) const { return get_rank_of (pos.m_node); }
 
-    iterator os_select (size_type p_rank)
+    iterator os_select (size_type p_rank) const
     {
         if ( p_rank > base_tree::size () || !p_rank )
             return iterator {nullptr, this};
@@ -175,7 +175,7 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         return iterator {curr, this};
     }
 
-    size_type get_number_less_then (value_type val)
+    size_type get_number_less_then (value_type val) const
     {
         if ( base_tree::empty () )
             return 0;

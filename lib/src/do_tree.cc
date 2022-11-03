@@ -15,7 +15,7 @@ namespace red
 {
 namespace containers
 {
-typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_increment ()
+typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_increment () const
 {
     auto curr = this;
     if ( curr->m_right )
@@ -35,7 +35,7 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_increment (
     return nullptr;
 }
 
-typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement ()
+typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement () const
 {
     auto curr = this;
 
