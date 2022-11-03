@@ -24,11 +24,11 @@ int main ()
 
     for ( ; n_requests > 0; --n_requests )
     {
-        int l_bound, r_bound;
-        std::cin >> l_bound >> r_bound;
+        int bound1 {}, bound2 {}, l_bound {}, r_bound {};
+        std::cin >> bound1 >> bound2;
         assert (std::cin.good ());
-        if ( r_bound < l_bound )
-            throw std::runtime_error ("Invalid request range");
+        l_bound = std::min (bound1, bound2);
+        r_bound = std::max (bound1, bound2);
 
         auto it_l = set.lower_bound (l_bound);
         auto it_r = set.upper_bound (r_bound);

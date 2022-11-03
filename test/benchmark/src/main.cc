@@ -91,10 +91,11 @@ std::pair<std::vector<int>, std::vector<std::pair<int, int>>> input ()
 
     for ( ; n_requests > 0; --n_requests )
     {
-        int l_bound, r_bound;
-        std::cin >> l_bound >> r_bound;
+        int bound1 {}, bound2 {}, l_bound {}, r_bound {};
+        std::cin >> bound1 >> bound2;
         assert (std::cin.good ());
-        assert (l_bound <= r_bound);
+        l_bound = std::min (bound1, bound2);
+        r_bound = std::max (bound1, bound2);
         bounds.push_back ({l_bound, r_bound});
     }
     return {elements, bounds};
