@@ -40,7 +40,7 @@ struct do_tree_node_base
 
     static size_type size (base_node_ptr node) { return (node ? node->m_size : 0); }
 
-    base_node_ptr m_minimum () noexcept
+    base_node_ptr m_minimum ()
     {
         base_node_ptr x = this;
         while ( x->m_left.get () )
@@ -48,7 +48,7 @@ struct do_tree_node_base
         return x;
     }
 
-    base_node_ptr m_maximum () noexcept
+    base_node_ptr m_maximum ()
     {
         base_node_ptr x = this;
         while ( x->m_right.get () )
@@ -56,8 +56,8 @@ struct do_tree_node_base
         return x;
     }
 
-    base_node_ptr do_tree_increment () noexcept;
-    base_node_ptr do_tree_decrement () noexcept;
+    base_node_ptr do_tree_increment ();
+    base_node_ptr do_tree_decrement ();
 
     base_node_ptr rotate_left ();
     base_node_ptr rotate_right ();
@@ -69,15 +69,9 @@ struct do_tree_node_base
             return m_parent->rotate_left ();
     }
 
-    bool is_left_child () const noexcept
-    {
-        return (m_parent ? this == m_parent->m_left.get () : false);
-    }
+    bool is_left_child () const { return (m_parent ? this == m_parent->m_left.get () : false); }
 
-    bool is_linear () const noexcept
-    {
-        return m_parent && (is_left_child () == m_parent->is_left_child ());
-    }
+    bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 };
 // Helper type offering value initialization guarantee on the compare functor.
 template <class Compare_> struct do_tree_key_compare
@@ -109,7 +103,7 @@ struct do_tree_header
         m_reset ();
     }
 
-    void m_reset () noexcept
+    void m_reset ()
     {
         m_header->m_parent = nullptr;
         m_leftmost         = nullptr;
@@ -165,35 +159,35 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
         pointer operator->() { return get (); }
 
-        self &operator++ () noexcept
+        self &operator++ ()
         {
             m_node = m_node->do_tree_increment ();
             return *this;
         }
 
-        self operator++ (int) noexcept
+        self operator++ (int)
         {
             self tmp = *this;
             m_node   = m_node->do_tree_increment ();
             return tmp;
         }
 
-        self &operator-- () noexcept
+        self &operator-- ()
         {
             m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
             return *this;
         }
 
-        self operator-- (int) noexcept
+        self operator-- (int)
         {
             self tmp = *this;
             m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
             return tmp;
         }
 
-        bool operator== (const self &other) const noexcept { return m_node == other.m_node; }
+        bool operator== (const self &other) const { return m_node == other.m_node; }
 
-        bool operator!= (const self &other) const noexcept { return !(*this == other); }
+        bool operator!= (const self &other) const { return !(*this == other); }
 
         base_node_ptr m_node                    = nullptr;
         const do_tree<Key_t, Compare_t> *m_tree = nullptr;
@@ -210,7 +204,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     using size_type = typename node::size_type;
 
   protected:
-    base_node_ptr root () const noexcept { return m_header_struct.m_header->m_left.get (); }
+    base_node_ptr root () const { return m_header_struct.m_header->m_left.get (); }
 
   public:
     do_tree () : m_compare_struct (Compare_t {}), m_header_struct () {}
@@ -236,21 +230,21 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
     // Accessors.
 
-    iterator begin () const noexcept { return iterator {m_header_struct.m_leftmost, this}; }
+    iterator begin () const { return iterator {m_header_struct.m_leftmost, this}; }
 
-    iterator end () const noexcept { return iterator {nullptr, this}; }
+    iterator end () const { return iterator {nullptr, this}; }
 
-    reverse_iterator rbegin () noexcept { return reverse_iterator {end ()}; }
+    reverse_iterator rbegin () { return reverse_iterator {end ()}; }
 
-    reverse_iterator rend () noexcept { return reverse_iterator {begin ()}; }
+    reverse_iterator rend () { return reverse_iterator {begin ()}; }
 
-    size_type size () const noexcept
+    size_type size () const
     {
         auto root = self::root ();
         return (root ? node::size (root) : 0);
     }
 
-    bool empty () const noexcept { return !size (); }
+    bool empty () const { return !size (); }
 
     template <typename F>
     std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step);
@@ -270,7 +264,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
         return iterator {res, this};
     }
 
-    void clear () noexcept { m_header_struct.m_reset (); }
+    void clear () { m_header_struct.m_reset (); }
 
   public:
     bool operator== (const do_tree &other) const
