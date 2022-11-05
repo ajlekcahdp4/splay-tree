@@ -99,11 +99,7 @@ struct do_tree_header
     base_node_ptr m_leftmost  = nullptr;
     base_node_ptr m_rightmost = nullptr;
 
-    do_tree_header ()
-    {
-        m_header = std::make_unique<base_node> ();
-        m_reset ();
-    }
+    do_tree_header () : m_header {std::make_unique<base_node> ()} { m_reset (); }
 
     void m_reset ()
     {
