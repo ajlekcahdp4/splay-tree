@@ -58,8 +58,10 @@ struct dl_binary_tree_node_base
     bool is_left_child () const { return (m_parent ? this == m_parent->m_left : false); }
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 
-    virtual dl_binary_tree_node_base *rotate_left ();
-    virtual dl_binary_tree_node_base *rotate_right ();
+    dl_binary_tree_node_base *rotate_left_base ();
+    dl_binary_tree_node_base *rotate_right_base ();
+    virtual dl_binary_tree_node_base *rotate_left () { return rotate_left_base (); }
+    virtual dl_binary_tree_node_base *rotate_right () { return rotate_right_base (); }
     dl_binary_tree_node_base *rotate_to_parent ()
     {
         if ( is_left_child () )

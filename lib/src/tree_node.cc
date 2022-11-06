@@ -53,7 +53,7 @@ dl_binary_tree_node_base *dl_binary_tree_node_base::predecessor () const
     }
 }
 
-dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_left ()
+dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_left_base ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
@@ -75,7 +75,7 @@ dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_left ()
     return rchild_ptr;
 }
 
-dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_right ()
+dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_right_base ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
