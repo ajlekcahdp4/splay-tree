@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <list>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -31,12 +32,11 @@ struct do_tree_node_base
     using size_type     = std::size_t;
     using base_node_ptr = do_tree_node_base *;
     using self          = do_tree_node_base;
-    using owning_ptr    = typename std::unique_ptr<do_tree_node_base>;
 
     size_type m_size       = 1;
     base_node_ptr m_parent = nullptr;
-    owning_ptr m_left      = nullptr;
-    owning_ptr m_right     = nullptr;
+    base_node_ptr m_left   = nullptr;
+    base_node_ptr m_right  = nullptr;
 
     virtual ~do_tree_node_base () {}
 
@@ -45,16 +45,16 @@ struct do_tree_node_base
     base_node_ptr m_minimum ()
     {
         base_node_ptr x = this;
-        while ( x->m_left.get () )
-            x = x->m_left.get ();
+        while ( x->m_left )
+            x = x->m_left;
         return x;
     }
 
     base_node_ptr m_maximum ()
     {
         base_node_ptr x = this;
-        while ( x->m_right.get () )
-            x = x->m_right.get ();
+        while ( x->m_right )
+            x = x->m_right;
         return x;
     }
 
@@ -71,7 +71,7 @@ struct do_tree_node_base
             return m_parent->rotate_left ();
     }
 
-    bool is_left_child () const { return (m_parent ? this == m_parent->m_left.get () : false); }
+    bool is_left_child () const { return (m_parent ? this == m_parent->m_left : false); }
 
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 };
@@ -92,22 +92,23 @@ template <class Compare_> struct do_tree_key_compare
 struct do_tree_header
 {
     using base_node_ptr = do_tree_node_base *;
-    using owning_ptr    = typename do_tree_node_base::owning_ptr;
     using base_node     = do_tree_node_base;
 
-    owning_ptr m_header       = nullptr;
+    base_node_ptr m_header    = nullptr;
     base_node_ptr m_leftmost  = nullptr;
     base_node_ptr m_rightmost = nullptr;
+    std::list<std::unique_ptr<do_tree_node_base>> m_nodes;
 
-    do_tree_header () : m_header {std::make_unique<base_node> ()} { m_reset (); }
+    do_tree_header () : m_header {new base_node} { m_nodes.emplace_back (m_header); }
 
     void m_reset ()
     {
-        m_header->m_parent = nullptr;
         m_leftmost         = nullptr;
         m_rightmost        = nullptr;
-        /* delete tree of unique pointers if any*/
-        m_header->m_left.release ();
+        m_header           = nullptr;
+        m_nodes.clear ();
+        m_header = new base_node;
+        m_nodes.emplace_back (m_header);
     }
 };
 
@@ -133,7 +134,6 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     using base_node     = do_tree_node_base;
     using base_node_ptr = do_tree_node_base *;
     using node_ptr      = do_tree_node<Key_t> *;
-    using owning_ptr    = typename do_tree_node_base::owning_ptr;
 
     using node = do_tree_node<Key_t>;
 
@@ -202,7 +202,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     using size_type = typename node::size_type;
 
   protected:
-    base_node_ptr root () const { return m_header_struct.m_header->m_left.get (); }
+    base_node_ptr root () const { return m_header_struct.m_header->m_left; }
 
   public:
     do_tree () : m_compare_struct (Compare_t {}), m_header_struct () {}
@@ -249,15 +249,15 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
 
   protected:
     // actually insert node in AVL
-    base_node_ptr m_insert_node (owning_ptr to_insert);
+    base_node_ptr m_insert_node (base_node_ptr to_insert);
 
   public:
     iterator insert (const value_type &key)
     {
         auto to_insert             = new node (key);
-        auto to_insert_base_unique = owning_ptr (static_cast<node_ptr> (to_insert));
+        m_header_struct.m_nodes.emplace_back (to_insert);
 
-        auto res = m_insert_node (std::move (to_insert_base_unique));
+        auto res = m_insert_node (to_insert);
 
         return iterator {res, this};
     }
@@ -284,8 +284,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
                      << "\", shape=record, style=filled, fillcolor=palegreen];\n";
 
             if ( pos.m_node->m_left )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left.get ()
-                         << ";\n";
+                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left << ";\n";
             else
             {
                 p_stream << "\tnode" << pos.m_node << " -> node0_l_" << *pos << ";\n";
@@ -294,8 +293,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
             }
 
             if ( pos.m_node->m_right )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right.get ()
-                         << ";\n";
+                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right << ";\n";
             else
             {
                 p_stream << "\tnode" << pos.m_node << " -> node0_r_" << *pos << ";\n";
@@ -331,9 +329,9 @@ do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
         step (curr);
         prev = curr;
         if ( key_less )
-            curr = curr->m_left.get ();
+            curr = curr->m_left;
         else
-            curr = curr->m_right.get ();
+            curr = curr->m_right;
     }
 
     if ( curr == root () )
@@ -344,13 +342,13 @@ do_tree<Key_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
 
 template <typename Key_t, typename Comp_t>
 typename do_tree<Key_t, Comp_t>::base_node_ptr
-do_tree<Key_t, Comp_t>::m_insert_node (owning_ptr to_insert)
+do_tree<Key_t, Comp_t>::m_insert_node (base_node_ptr to_insert)
 {
-    auto to_insert_ptr = to_insert.get ();
+    auto to_insert_ptr = to_insert;
     if ( empty () )
     {
         m_header_struct.m_header->m_left = std::move (to_insert);
-        to_insert_ptr->m_parent          = m_header_struct.m_header.get ();
+        to_insert_ptr->m_parent          = m_header_struct.m_header;
 
         m_header_struct.m_leftmost  = to_insert_ptr;
         m_header_struct.m_rightmost = to_insert_ptr;
@@ -371,7 +369,7 @@ do_tree<Key_t, Comp_t>::m_insert_node (owning_ptr to_insert)
     }
     to_insert->m_parent = prev;
 
-    if ( prev == m_header_struct.m_header.get () || prev_greater )
+    if ( prev == m_header_struct.m_header || prev_greater )
     {
         prev->m_left = std::move (to_insert);
         if ( prev == m_header_struct.m_leftmost )

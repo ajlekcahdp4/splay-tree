@@ -44,7 +44,7 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::do_tree_decrement (
 
     base_node_ptr prev = curr->m_parent;
     /*       while not root      */
-    while ( prev->m_parent && curr == prev->m_left.get () )
+    while ( prev->m_parent && curr == prev->m_left )
     {
         curr = prev;
         prev = prev->m_parent;
@@ -58,7 +58,7 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_left ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
-    auto rchild_ptr = node->m_right.release ();
+    auto rchild_ptr = node;
 
     node->m_right = std::move (rchild_ptr->m_left);
 
@@ -68,23 +68,17 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_left ()
     rchild_ptr->m_parent = parent;
     if ( parent )
     {
+        rchild_ptr->m_left = node;
         if ( node->is_left_child () )
-        {
-            rchild_ptr->m_left = std::move (parent->m_left);
-            parent->m_left     = owning_ptr (rchild_ptr);
-        }
+            parent->m_left = rchild_ptr;
         else if ( parent )
-        {
-            rchild_ptr->m_left = std::move (parent->m_right);
-            parent->m_right    = owning_ptr (rchild_ptr);
-        }
+            parent->m_right = rchild_ptr;
     }
-
     node->m_parent = rchild_ptr;
 
     /* update rchild's and node's sizes (the only sizes changed) */
     rchild_ptr->m_size = node->m_size;
-    node->m_size       = self::size (node->m_left.get ()) + self::size (node->m_right.get ()) + 1;
+    node->m_size       = self::size (node->m_left) + self::size (node->m_right) + 1;
 
     return rchild_ptr;
 }
@@ -93,7 +87,7 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_right ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
-    auto lchild_ptr = node->m_left.release ();
+    auto lchild_ptr = node;
 
     node->m_left = std::move (lchild_ptr->m_right);
 
@@ -103,23 +97,18 @@ typename do_tree_node_base::base_node_ptr do_tree_node_base::rotate_right ()
     lchild_ptr->m_parent = parent;
     if ( parent )
     {
+        lchild_ptr->m_right = node;
         if ( node->is_left_child () )
-        {
-            lchild_ptr->m_right = std::move (parent->m_left);
-            parent->m_left      = owning_ptr (lchild_ptr);
-        }
+            parent->m_left = lchild_ptr;
         else if ( parent )
-        {
-            lchild_ptr->m_right = std::move (parent->m_right);
-            parent->m_right     = owning_ptr (lchild_ptr);
-        }
+            parent->m_right = lchild_ptr;
     }
 
     node->m_parent = lchild_ptr;
 
     /* update rchild's and node's sizes (the only sizes changed) */
     lchild_ptr->m_size = node->m_size;
-    node->m_size       = self::size (node->m_left.get ()) + self::size (node->m_right.get ()) + 1;
+    node->m_size       = self::size (node->m_left) + self::size (node->m_right) + 1;
 
     return lchild_ptr;
 }

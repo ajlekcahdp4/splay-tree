@@ -25,10 +25,10 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
 {
   private:
     using base_tree = do_tree<Key_t, Compare_t>;
+    using typename base_tree::base_node;
     using typename base_tree::base_node_ptr;
     using typename base_tree::node;
     using typename base_tree::node_ptr;
-    using typename base_tree::owning_ptr;
     using typename base_tree::size_type;
     using typename base_tree::value_type;
 
@@ -89,33 +89,35 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
             {
                 base_tree::m_header_struct.m_leftmost = base_tree::root ()->do_tree_increment ();
                 base_tree::m_header_struct.m_header->m_left = std::move (to_erase->m_right);
-                base_tree::root ()->m_parent = base_tree::m_header_struct.m_header.get ();
+                base_tree::root ()->m_parent                = base_tree::m_header_struct.m_header;
             }
             else if ( !to_erase->m_right )
             {
                 base_tree::m_header_struct.m_rightmost = base_tree::root ()->do_tree_decrement ();
                 base_tree::m_header_struct.m_header->m_left = std::move (to_erase->m_left);
-                base_tree::root ()->m_parent = base_tree::m_header_struct.m_header.get ();
+                base_tree::root ()->m_parent                = base_tree::m_header_struct.m_header;
             }
 
             else
             {
-                merge (to_erase->m_left.get (), to_erase->m_right.get ());
+                merge (to_erase->m_left, to_erase->m_right);
             }
         }
         else
         {
             base_tree::m_header_struct.m_reset ();
         }
+        base_tree::m_header_struct.m_nodes.remove_if (
+            [&] (std::unique_ptr<base_node> &ptr) { return ptr.get () == node; });
     }
 
     size_type get_rank_of (base_node_ptr node) const
     {
-        size_type rank = (node->m_left.get () ? node->m_left->m_size + 1 : 1);
+        size_type rank = (node->m_left ? node->m_left->m_size + 1 : 1);
         while ( node != base_tree::root () )
         {
             if ( !node->is_left_child () )
-                rank += (node->m_parent->m_left.get () ? node->m_parent->m_left->m_size + 1 : 1);
+                rank += (node->m_parent->m_left ? node->m_parent->m_left->m_size + 1 : 1);
             node = node->m_parent;
         }
         splay (node);
@@ -147,8 +149,8 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
     void insert (const value_type &val)
     {
         auto to_insert             = new node {val};
-        auto to_insert_base_unique = owning_ptr (static_cast<base_node_ptr> (to_insert));
-        auto inserted              = base_tree::m_insert_node (std::move (to_insert_base_unique));
+        base_tree::m_header_struct.m_nodes.emplace_back (to_insert);
+        auto inserted = base_tree::m_insert_node (to_insert);
         splay (inserted);
     }
 
@@ -160,17 +162,17 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
             return iterator {nullptr, this};
 
         auto curr      = base_tree::root ();
-        size_type rank = (curr->m_left.get () ? curr->m_left->m_size : 0) + 1;
+        size_type rank = (curr->m_left ? curr->m_left->m_size : 0) + 1;
         while ( rank != p_rank )
         {
             if ( p_rank < rank )
-                curr = curr->m_left.get ();
+                curr = curr->m_left;
             else
             {
-                curr = curr->m_right.get ();
+                curr = curr->m_right;
                 p_rank -= rank;
             }
-            rank = (curr->m_left.get () ? curr->m_left->m_size : 0) + 1;
+            rank = (curr->m_left ? curr->m_left->m_size : 0) + 1;
         }
         return iterator {curr, this};
     }
@@ -199,10 +201,10 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
             if ( !key_bigger )
             {
                 parent = node;
-                node   = node->m_left.get ();
+                node   = node->m_left;
             }
             else
-                node = node->m_right.get ();
+                node = node->m_right;
         }
         if ( parent )
             splay (parent);
@@ -220,10 +222,10 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
             if ( key_less )
             {
                 parent = node;
-                node   = node->m_left.get ();
+                node   = node->m_left;
             }
             else
-                node = node->m_right.get ();
+                node = node->m_right;
         }
         if ( parent )
             splay (parent);
