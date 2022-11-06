@@ -107,8 +107,7 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
         {
             base_tree::m_header_struct.m_reset ();
         }
-        base_tree::m_header_struct.m_nodes.remove_if (
-            [&] (std::unique_ptr<base_node> &ptr) { return ptr.get () == node; });
+        base_tree::m_header_struct.m_nodes.erase (node);
     }
 
     size_type get_rank_of (base_node_ptr node) const
@@ -149,7 +148,7 @@ struct splay_do_tree final : public do_tree<Key_t, Compare_t>
     void insert (const value_type &val)
     {
         auto to_insert             = new node {val};
-        base_tree::m_header_struct.m_nodes.emplace_back (to_insert);
+        base_tree::m_header_struct.m_nodes.emplace (to_insert, to_insert);
         auto inserted = base_tree::m_insert_node (to_insert);
         splay (inserted);
     }

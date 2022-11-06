@@ -17,9 +17,9 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <list>
 #include <memory>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 
 namespace red
@@ -97,9 +97,9 @@ struct do_tree_header
     base_node_ptr m_header    = nullptr;
     base_node_ptr m_leftmost  = nullptr;
     base_node_ptr m_rightmost = nullptr;
-    std::list<std::unique_ptr<do_tree_node_base>> m_nodes;
+    std::unordered_map<base_node_ptr, std::unique_ptr<base_node>> m_nodes;
 
-    do_tree_header () : m_header {new base_node} { m_nodes.emplace_back (m_header); }
+    do_tree_header () : m_header {new base_node} { m_nodes.emplace (m_header, m_header); }
 
     void m_reset ()
     {
@@ -108,7 +108,7 @@ struct do_tree_header
         m_header           = nullptr;
         m_nodes.clear ();
         m_header = new base_node;
-        m_nodes.emplace_back (m_header);
+        m_nodes.emplace (m_header, m_header);
     }
 };
 
@@ -255,7 +255,7 @@ template <typename Key_t, class Compare_t = std::less<Key_t>> struct do_tree
     iterator insert (const value_type &key)
     {
         auto to_insert             = new node (key);
-        m_header_struct.m_nodes.emplace_back (to_insert);
+        m_header_struct.m_nodes.emplace (to_insert, to_insert);
 
         auto res = m_insert_node (to_insert);
 
