@@ -28,12 +28,11 @@ namespace containers
 
 struct dl_binary_tree_node_base
 {
-  private:
+  public:
     dl_binary_tree_node_base *m_parent = nullptr;
     dl_binary_tree_node_base *m_left   = nullptr;
     dl_binary_tree_node_base *m_right  = nullptr;
 
-  public:
     virtual ~dl_binary_tree_node_base () {};
 
     dl_binary_tree_node_base *minimum ()
@@ -58,8 +57,11 @@ struct dl_binary_tree_node_base
     bool is_left_child () const { return (m_parent ? this == m_parent->m_left : false); }
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 
+  protected:
     dl_binary_tree_node_base *rotate_left_base ();
     dl_binary_tree_node_base *rotate_right_base ();
+
+  public:
     virtual dl_binary_tree_node_base *rotate_left () { return rotate_left_base (); }
     virtual dl_binary_tree_node_base *rotate_right () { return rotate_right_base (); }
     dl_binary_tree_node_base *rotate_to_parent ()
@@ -71,49 +73,41 @@ struct dl_binary_tree_node_base
     }
 };
 
-struct do_tree_node_base
+struct dynamic_order_node : public dl_binary_tree_node_base
 {
     using size_type     = std::size_t;
-    using base_node_ptr = do_tree_node_base *;
-    using self          = do_tree_node_base;
-    using owning_ptr    = typename std::unique_ptr<do_tree_node_base>;
+    using base_node     = dl_binary_tree_node_base;
+    using base_node_ptr = dl_binary_tree_node_base *;
 
     size_type m_size = 1;
 
-    static size_type size (dl_binary_tree_node_base *node) { return (node ? node->m_size : 0); }
-
-    dl_binary_tree_node_base *m_minimum ()
+    static size_type size (const base_node_ptr base_ptr)
     {
-        dl_binary_tree_node_base *x = this;
-        while ( x->m_left.get () )
-            x = x->m_left.get ();
-        return x;
+        return static_cast<const dynamic_order_node *> (base_ptr)->m_size;
     }
 
-    dl_binary_tree_node_base *m_maximum ()
+    base_node_ptr rotate_left () override
     {
-        dl_binary_tree_node_base *x = this;
-        while ( x->m_right.get () )
-            x = x->m_right.get ();
-        return x;
+        dynamic_order_node *rchild = static_cast<dynamic_order_node *> (rotate_left_base ());
+        rchild->m_size             = m_size;
+        m_size                     = size (m_left) + size (m_right);
     }
 
-    dl_binary_tree_node_base *do_tree_increment () const;
-    dl_binary_tree_node_base *do_tree_decrement () const;
-
-    dl_binary_tree_node_base *rotate_left ();
-    dl_binary_tree_node_base *rotate_right ();
-    dl_binary_tree_node_base *rotate_to_parent ()
+    base_node_ptr rotate_right () override
     {
-        if ( is_left_child () )
-            return m_parent->rotate_right ();
-        else
-            return m_parent->rotate_left ();
+        dynamic_order_node *lchild = static_cast<dynamic_order_node *> (rotate_right_base ());
+        lchild->m_size             = m_size;
+        m_size                     = size (m_left) + size (m_right);
     }
+};
 
-    bool is_left_child () const { return (m_parent ? this == m_parent->m_left.get () : false); }
+template <typename T> struct dynamic_set_node : public dynamic_order_node
+{
+    using value_type = T;
+    using typename dynamic_order_node::base_node;
+    using typename dynamic_order_node::base_node_ptr;
 
-    bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
+    value_type m_value {};
 };
 
 }   // namespace containers
