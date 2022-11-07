@@ -75,7 +75,7 @@ struct dl_binary_tree_node_base
 
 struct dynamic_order_node : public dl_binary_tree_node_base
 {
-    using size_type     = std::size_t;
+    using size_type     = typename std::size_t;
     using base_node     = dl_binary_tree_node_base;
     using base_node_ptr = dl_binary_tree_node_base *;
 
