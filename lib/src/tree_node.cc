@@ -15,42 +15,6 @@ namespace red
 namespace containers
 {
 
-dl_binary_tree_node_base *dl_binary_tree_node_base::successor () const
-{
-    {
-        auto curr = this;
-        if ( curr->m_right )
-            return curr->m_right->minimum ();
-        auto *prev = curr->m_parent;
-        while ( prev->m_parent && !curr->is_left_child () )
-        {
-            curr = prev;
-            prev = prev->m_parent;
-        }
-        if ( prev->m_parent )
-            return prev;
-        return nullptr;
-    }
-}
-
-dl_binary_tree_node_base *dl_binary_tree_node_base::predecessor () const
-{
-    {
-        auto curr = this;
-        if ( curr->m_left )
-            return curr->m_left->maximum ();
-        auto prev = curr->m_parent;
-        while ( prev->m_parent && curr->is_left_child () )
-        {
-            curr = prev;
-            prev = prev->m_parent;
-        }
-        if ( prev->m_parent )
-            return prev;
-        return nullptr;
-    }
-}
-
 dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_left_base ()
 {
     auto node       = this;
