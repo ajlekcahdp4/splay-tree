@@ -1,7 +1,7 @@
 set (UNIT_TEST_SOURCES
     src/main.cc
     src/test_do_tree.cc
-    src/test_splay_tree.cc
+    #src/test_splay_tree.cc
 )
 
 if (ENABLE_GTEST)

@@ -91,6 +91,7 @@ struct dynamic_order_node : public dl_binary_tree_node_base
         dynamic_order_node *rchild = static_cast<dynamic_order_node *> (rotate_left_base ());
         rchild->m_size             = m_size;
         m_size                     = size (m_left) + size (m_right);
+        return rchild;
     }
 
     base_node_ptr rotate_right () override
@@ -98,6 +99,7 @@ struct dynamic_order_node : public dl_binary_tree_node_base
         dynamic_order_node *lchild = static_cast<dynamic_order_node *> (rotate_right_base ());
         lchild->m_size             = m_size;
         m_size                     = size (m_left) + size (m_right);
+        return lchild;
     }
 };
 
@@ -106,6 +108,8 @@ template <typename T> struct dynamic_set_node : public dynamic_order_node
     using value_type = T;
     using typename dynamic_order_node::base_node;
     using typename dynamic_order_node::base_node_ptr;
+
+    dynamic_set_node (T val) : m_value {val} {}
 
     value_type m_value {};
 };

@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include "do_tree.hpp"
+#include "binary_tree.hpp"
 
-template struct red::containers::do_tree<int>;
-using do_tree = typename red::containers::do_tree<int>;
+template struct red::containers::binary_tree<red::containers::dynamic_set_node<int>>;
+using binary_tree = typename red::containers::binary_tree<red::containers::dynamic_set_node<int>>;
 
-TEST (test_do_tree, ctor) { do_tree {}; }
+TEST (test_binary_tree, ctor) { binary_tree {}; }
 
-TEST (test_do_tree, double_insert)
+TEST (test_binary_tree, double_insert)
 {
-    do_tree tree;
+    binary_tree tree;
     for ( int i = 0; i < 10; i++ )
         tree.insert (i);
 
@@ -22,9 +22,9 @@ TEST (test_do_tree, double_insert)
     }
 }
 
-TEST (test_do_tree, delete_unrepresented)
+TEST (test_binary_tree, delete_unrepresented)
 {
-    do_tree tree;
+    binary_tree tree;
     for ( int i = 0; i < 10; i++ )
         tree.insert (i);
 
@@ -37,9 +37,9 @@ TEST (test_do_tree, delete_unrepresented)
     }
 }
 
-TEST (test_do_tree, range_for)
+TEST (test_binary_tree, range_for)
 {
-    do_tree tree;
+    binary_tree tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
@@ -53,9 +53,9 @@ TEST (test_do_tree, range_for)
     }
 }
 
-TEST (test_do_tree, clear)
+TEST (test_binary_tree, clear)
 {
-    do_tree tree;
+    binary_tree tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
@@ -66,14 +66,14 @@ TEST (test_do_tree, clear)
     EXPECT_EQ (tree.begin (), tree.end ());
 }
 
-TEST (test_do_tree, equal_1)
+TEST (test_binary_tree, equal_1)
 {
-    do_tree tree1;
+    binary_tree tree1;
 
     for ( int i = 1; i <= 10; i++ )
         tree1.insert (i);
 
-    do_tree tree2;
+    binary_tree tree2;
 
     for ( int i = 1; i <= 10; i++ )
         tree2.insert (2 * i);
@@ -83,15 +83,15 @@ TEST (test_do_tree, equal_1)
     EXPECT_TRUE (tree1 != tree2);
 }
 
-TEST (test_do_tree, move_ctor)
+TEST (test_binary_tree, move_ctor)
 {
-    do_tree tree;
+    binary_tree tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
 
     std::vector<int> v {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-    do_tree tree2 = std::move (tree);
+    binary_tree tree2 = std::move (tree);
     for ( auto &i : tree2 )
     {
         EXPECT_EQ (i, v.back ());

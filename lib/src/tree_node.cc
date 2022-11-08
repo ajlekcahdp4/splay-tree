@@ -8,8 +8,6 @@
 
 // defenitions for some functions declared in "tree_node.hpp"
 
-#pragma once
-
 #include "tree_node.hpp"
 
 namespace red

@@ -51,6 +51,7 @@ struct header
     base_node_ptr m_leftmost  = nullptr;
     base_node_ptr m_rightmost = nullptr;
     std::unordered_map<base_node_ptr, std::unique_ptr<base_node>> m_nodes;
+    std::size_t m_size {0};
 
     header () : m_header {new base_node} { m_nodes.emplace (m_header, m_header); }
 
@@ -59,27 +60,79 @@ struct header
         m_leftmost  = nullptr;
         m_rightmost = nullptr;
         m_header    = nullptr;
+        m_size      = 0;
         m_nodes.clear ();
         m_header = new base_node;
         m_nodes.emplace (m_header, m_header);
     }
 };
 
-template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>> struct binary_tree
+template <typename node_t, class Compare_t = std::less<typename node_t::value_type>>
+struct binary_tree
 {
   private:
     using key_compare_t = key_compare<Compare_t>;
-    using self          = binary_tree<Value_t, Compare_t>;
+    using self          = binary_tree<node_t, Compare_t>;
 
     using node          = node_t;
     using node_ptr      = node_t *;
-    using base_node     = node::base_node;
-    using base_node_ptr = node::base_node_ptr *;
+    using base_node     = typename node::base_node;
+    using base_node_ptr = typename node::base_node_ptr;
 
     using compare = Compare_t;
 
+    struct binary_tree_iterator
+    {
+        using iterator_category = typename std::bidirectional_iterator_tag;
+        using difference_type   = typename std::ptrdiff_t;
+        using value_type        = typename node_t::value_type;
+        using pointer           = value_type *;
+        using reference         = value_type &;
+
+        reference operator* () const { return m_node->m_value; }
+
+        pointer get () { return &m_node->m_value; }
+
+        pointer operator->() { return get (); }
+
+        binary_tree_iterator &operator++ ()
+        {
+            m_node = static_cast<node_ptr> (m_node->successor ());
+            return *this;
+        }
+
+        binary_tree_iterator operator++ (int)
+        {
+            auto tmp = *this;
+            m_node   = static_cast<node_ptr> (m_node->successor ());
+            return tmp;
+        }
+
+        binary_tree_iterator &operator-- ()
+        {
+            m_node = (m_node ? static_cast<node_ptr> (m_node->predecessor ())
+                             : static_cast<node_ptr> (m_tree->m_header_struct.m_rightmost));
+            return *this;
+        }
+
+        binary_tree_iterator operator-- (int)
+        {
+            auto tmp = *this;
+            m_node   = (m_node ? static_cast<node_ptr> (m_node->predecessor ())
+                               : static_cast<node_ptr> (m_tree->m_header_struct.m_rightmost));
+            return tmp;
+        }
+
+        bool operator== (const binary_tree_iterator &other) const { return m_node == other.m_node; }
+
+        bool operator!= (const binary_tree_iterator &other) const { return !(*this == other); }
+
+        node_ptr m_node                          = nullptr;
+        const binary_tree<node, compare> *m_tree = nullptr;
+    };
+
   public:
-    using value_type = Value_t;
+    using value_type = typename node_t::value_type;
     using pointer    = value_type *;
     using reference  = value_type &;
     using size_type  = typename std::size_t;
@@ -87,56 +140,10 @@ template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>>
   private:
     key_compare_t m_compare_struct;
     header m_header_struct;
-    size_type m_size {0};
-
-    struct binary_tree_iterator
-    {
-        using iterator_category = std::bidirectional_iterator_tag;
-        using difference_type   = std::ptrdiff_t;
-
-        reference operator* () const { return (static_cast<node_ptr> (m_node))->m_value; }
-
-        pointer get () { return &(static_cast<node_ptr> (m_node)->m_value); }
-
-        pointer operator->() { return get (); }
-
-        iterator &operator++ ()
-        {
-            m_node = m_node->do_tree_increment ();
-            return *this;
-        }
-
-        iterator operator++ (int)
-        {
-            auto tmp = *this;
-            m_node   = m_node->do_tree_increment ();
-            return tmp;
-        }
-
-        iterator &operator-- ()
-        {
-            m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
-            return *this;
-        }
-
-        iterator operator-- (int)
-        {
-            auto tmp = *this;
-            m_node = (m_node ? m_node->do_tree_decrement () : m_tree->m_header_struct.m_rightmost);
-            return tmp;
-        }
-
-        bool operator== (const self &other) const { return m_node == other.m_node; }
-
-        bool operator!= (const self &other) const { return !(*this == other); }
-
-        base_node_ptr m_node                           = nullptr;
-        const binary_tree<value_type, compare> *m_tree = nullptr;
-    };
 
   public:
     using iterator         = binary_tree_iterator;
-    using reverse_iterator = std::reverse_iterator<iterator>;
+    using reverse_iterator = typename std::reverse_iterator<iterator>;
 
   public:
     binary_tree () : m_compare_struct {Compare_t {}}, m_header_struct {} {}
@@ -161,7 +168,10 @@ template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>>
     virtual ~binary_tree () {}
 
     //  accessors
-    iterator begin () const { return iterator {m_header_struct.m_leftmost, this}; }
+    iterator begin () const
+    {
+        return iterator {static_cast<node_ptr> (m_header_struct.m_leftmost), this};
+    }
 
     iterator end () const { return iterator {nullptr, this}; }
 
@@ -169,7 +179,7 @@ template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>>
 
     reverse_iterator rend () const { return reverse_iterator {begin ()}; }
 
-    size_type size () const { return m_size; }
+    size_type size () const { return m_header_struct.m_size; }
 
     bool empty () const { return !size (); }
 
@@ -181,27 +191,29 @@ template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>>
     {
         auto to_insert = new node (key);
         m_header_struct.m_nodes.emplace (to_insert, to_insert);
-        auto res = m_insert_node (to_insert);
-        ++m_size;
-        return iterator {res, this};
+        auto res = insert_node_base (
+            to_insert, [] (base_node_ptr) {}, [] (base_node_ptr) {});
+        ++m_header_struct.m_size;
+        return iterator {static_cast<node_ptr> (res), this};
     }
 
   protected:
     base_node_ptr root () const { return m_header_struct.m_header->m_left; }
 
-    // insert node in tree without rebalancing
-    base_node_ptr m_insert_node (base_node_ptr to_insert);
+    // insert node in tree without rebalancing.
+    template <typename F1, typename F2>
+    base_node_ptr insert_node_base (base_node_ptr to_insert, F1 step, F2 step_if_already);
 
     template <typename F>
     std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step) const;
 
   public:
-    bool operator== (const do_tree &other) const
+    bool operator== (const self &other) const
     {
         return size () == other.size () && std::equal (begin (), end (), other.begin ());
     }
 
-    bool operator!= (const do_tree &other) const { return !(*this == other); }
+    bool operator!= (const self &other) const { return !(*this == other); }
 
     void dump (std::string filename) const
     {
@@ -238,11 +250,11 @@ template <typename node_t, typename Value_t, class Compare_t = std::less<Key_t>>
     }
 };
 
-template <typename Node_t, typename Key_t, typename Comp_t>
+template <typename Node_t, typename Comp_t>
 template <typename F>
-std::tuple<typename binary_tree<Node_t, Key_t, Comp_t>::base_node_ptr,
-           typename binary_tree<Node_t, Key_t, Comp_t>::base_node_ptr, bool>
-binary_tree<Node_t, Key_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
+std::tuple<typename binary_tree<Node_t, Comp_t>::base_node_ptr,
+           typename binary_tree<Node_t, Comp_t>::base_node_ptr, bool>
+binary_tree<Node_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
 {
     using res = typename std::tuple<base_node_ptr, base_node_ptr, bool>;
 
@@ -271,9 +283,10 @@ binary_tree<Node_t, Key_t, Comp_t>::m_trav_bin_search (value_type key, F step) c
     return res {curr, prev, key_less};
 }
 
-template <typename Node_t, typename Key_t, typename Comp_t>
-typename binary_tree<Node_t, Key_t, Comp_t>::base_node_ptr
-binary_tree<Node_t, Key_t, Comp_t>::m_insert_node (base_node_ptr to_insert)
+template <typename Node_t, typename Comp_t>
+template <typename F1, typename F2>
+typename binary_tree<Node_t, Comp_t>::base_node_ptr
+binary_tree<Node_t, Comp_t>::insert_node_base (base_node_ptr to_insert, F1 step, F2 step_if_already)
 {
     auto to_insert_ptr = to_insert;
     if ( empty () )
@@ -289,13 +302,11 @@ binary_tree<Node_t, Key_t, Comp_t>::m_insert_node (base_node_ptr to_insert)
 
     /* Find right position in the tree */
     auto [found, prev, prev_greater] =
-        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value,
-                           [] (base_node_ptr node) { node->m_size++; });
+        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step);
 
     if ( found )
     {
-        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value,
-                           [] (base_node_ptr node) { node->m_size--; });
+        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step_if_already);
         throw std::out_of_range ("Element already inserted");
     }
     to_insert->m_parent = prev;
