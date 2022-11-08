@@ -98,3 +98,54 @@ TEST (test_binary_tree, move_ctor)
         v.pop_back ();
     }
 }
+
+TEST (test_binary_tree, erase_by_key_1)
+{
+    binary_tree tree;
+    tree.insert (1);
+    tree.erase (1);
+
+    EXPECT_TRUE (tree.empty ());
+}
+
+TEST (test_binary_tree, erase_by_key_2)
+{
+    binary_tree tree;
+    tree.insert (1);
+    tree.insert (2);
+
+    EXPECT_EQ (*tree.begin (), 1);
+    EXPECT_EQ (*tree.rbegin (), 2);
+    tree.erase (1);
+
+    EXPECT_EQ (*tree.begin (), 2);
+    EXPECT_EQ (*tree.rbegin (), 2);
+}
+
+TEST (test_binary_tree, erase_by_key_3)
+{
+    binary_tree tree;
+    tree.insert (1);
+    tree.insert (2);
+
+    EXPECT_EQ (*tree.begin (), 1);
+    EXPECT_EQ (*tree.rbegin (), 2);
+    tree.erase (2);
+
+    EXPECT_EQ (*tree.begin (), 1);
+    EXPECT_EQ (*tree.rbegin (), 1);
+}
+
+TEST (test_binary_tree, delete_all)
+{
+    binary_tree tree;
+
+    for ( int i = 0; i < 10; i++ )
+        tree.insert (i);
+
+    for ( int i = 0; i < 10; i++ )
+        EXPECT_NO_THROW (tree.erase (i));
+
+    EXPECT_EQ (tree.size (), 0);
+    EXPECT_TRUE (tree.empty ());
+}

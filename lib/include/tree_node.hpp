@@ -90,7 +90,7 @@ struct dynamic_order_node : public dl_binary_tree_node_base
     {
         dynamic_order_node *rchild = static_cast<dynamic_order_node *> (rotate_left_base ());
         rchild->m_size             = m_size;
-        m_size                     = size (m_left) + size (m_right);
+        m_size                     = 1 + size (m_left) + size (m_right);
         return rchild;
     }
 
@@ -98,7 +98,7 @@ struct dynamic_order_node : public dl_binary_tree_node_base
     {
         dynamic_order_node *lchild = static_cast<dynamic_order_node *> (rotate_right_base ());
         lchild->m_size             = m_size;
-        m_size                     = size (m_left) + size (m_right);
+        m_size                     = 1 + size (m_left) + size (m_right);
         return lchild;
     }
 };

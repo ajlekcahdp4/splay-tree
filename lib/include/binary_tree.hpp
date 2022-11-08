@@ -197,15 +197,61 @@ struct binary_tree
         return iterator {static_cast<node_ptr> (res), this};
     }
 
+    virtual void erase (const value_type &key)
+    {
+        auto to_erase_pos = find_for_erase (
+            key, [] (base_node_ptr) {}, [] (base_node_ptr) {});
+
+        erase_node_base (to_erase_pos.m_node);
+
+        m_header_struct.m_nodes.erase (to_erase_pos.m_node);
+        --m_header_struct.m_size;
+    }
+
   protected:
     base_node_ptr root () const { return m_header_struct.m_header->m_left; }
 
     // insert node in tree without rebalancing.
+    // "step" applies to all nodes on the path to the requested key
+    // "step_if_already" applies to all nodes on the path to the requested key if this key has
+    // already been inserted
     template <typename F1, typename F2>
     base_node_ptr insert_node_base (base_node_ptr to_insert, F1 step, F2 step_if_already);
 
+    // find node to be erased from the tree
+    // "step" applies to all nodes on the path to the requested key
+    // "step_if_no" applies to all nodes on the path to the requested key if there were no
+    // element with the requested key
+    template <typename F1, typename F2>
+    iterator find_for_erase (const value_type &key, F1 step, F2 step_if_no)
+    {
+        auto [found, prev, prev_greater] = trav_bin_search (key, step);
+        if ( found )
+            return iterator {static_cast<node_ptr> (found), this};
+        trav_bin_search (key, step_if_no);
+        throw std::out_of_range ("No element with requested key to erase");
+    }
+
+    void erase_node_base (base_node_ptr to_erase)
+    {
+        auto succ            = to_erase->successor ();
+        base_node_ptr target = succ;
+        if ( m_header_struct.m_leftmost == to_erase )
+        {
+            m_header_struct.m_leftmost = succ;
+            target                     = to_erase;
+        }
+        if ( m_header_struct.m_rightmost == to_erase )
+        {
+            m_header_struct.m_rightmost = to_erase->predecessor ();
+            target                      = to_erase;
+        }
+        std::swap (static_cast<node_ptr> (target)->m_value,
+                   static_cast<node_ptr> (to_erase)->m_value);
+    }
+
     template <typename F>
-    std::tuple<base_node_ptr, base_node_ptr, bool> m_trav_bin_search (value_type key, F step) const;
+    std::tuple<base_node_ptr, base_node_ptr, bool> trav_bin_search (value_type key, F step) const;
 
   public:
     bool operator== (const self &other) const
@@ -254,7 +300,7 @@ template <typename Node_t, typename Comp_t>
 template <typename F>
 std::tuple<typename binary_tree<Node_t, Comp_t>::base_node_ptr,
            typename binary_tree<Node_t, Comp_t>::base_node_ptr, bool>
-binary_tree<Node_t, Comp_t>::m_trav_bin_search (value_type key, F step) const
+binary_tree<Node_t, Comp_t>::trav_bin_search (value_type key, F step) const
 {
     using res = typename std::tuple<base_node_ptr, base_node_ptr, bool>;
 
@@ -302,11 +348,11 @@ binary_tree<Node_t, Comp_t>::insert_node_base (base_node_ptr to_insert, F1 step,
 
     /* Find right position in the tree */
     auto [found, prev, prev_greater] =
-        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step);
+        trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step);
 
     if ( found )
     {
-        m_trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step_if_already);
+        trav_bin_search (static_cast<node_ptr> (to_insert_ptr)->m_value, step_if_already);
         throw std::out_of_range ("Element already inserted");
     }
     to_insert->m_parent = prev;

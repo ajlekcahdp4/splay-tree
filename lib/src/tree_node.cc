@@ -40,7 +40,7 @@ dl_binary_tree_node_base *dl_binary_tree_node_base::predecessor () const
         if ( curr->m_left )
             return curr->m_left->maximum ();
         auto prev = curr->m_parent;
-        while ( prev->m_parent && curr == prev->m_left )
+        while ( prev->m_parent && curr->is_left_child () )
         {
             curr = prev;
             prev = prev->m_parent;
