@@ -29,6 +29,9 @@ namespace containers
 struct dl_binary_tree_node_base
 {
   public:
+    using base_node     = dl_binary_tree_node_base;
+    using base_node_ptr = dl_binary_tree_node_base *;
+
     dl_binary_tree_node_base *m_parent = nullptr;
     dl_binary_tree_node_base *m_left   = nullptr;
     dl_binary_tree_node_base *m_right  = nullptr;
@@ -73,22 +76,29 @@ struct dl_binary_tree_node_base
     }
 };
 
-struct dynamic_order_node : public dl_binary_tree_node_base
+template <typename T> struct dynamic_set_node : public dl_binary_tree_node_base
 {
-    using size_type     = typename std::size_t;
-    using base_node     = dl_binary_tree_node_base;
-    using base_node_ptr = dl_binary_tree_node_base *;
+    using value_type = T;
+    using size_type  = typename std::size_t;
+    using typename dl_binary_tree_node_base::base_node;
+    using typename dl_binary_tree_node_base::base_node_ptr;
 
     size_type m_size = 1;
+    value_type m_value {};
 
     static size_type size (const base_node_ptr base_ptr)
     {
-        return static_cast<const dynamic_order_node *> (base_ptr)->m_size;
+        return static_cast<const dynamic_set_node *> (base_ptr)->m_size;
+    }
+
+    static value_type &value (const base_node_ptr base_ptr)
+    {
+        return static_cast<const dynamic_set_node *> (base_ptr)->m_value;
     }
 
     base_node_ptr rotate_left () override
     {
-        dynamic_order_node *rchild = static_cast<dynamic_order_node *> (rotate_left_base ());
+        auto *rchild               = static_cast<dynamic_set_node *> (rotate_left_base ());
         rchild->m_size             = m_size;
         m_size                     = 1 + size (m_left) + size (m_right);
         return rchild;
@@ -96,22 +106,13 @@ struct dynamic_order_node : public dl_binary_tree_node_base
 
     base_node_ptr rotate_right () override
     {
-        dynamic_order_node *lchild = static_cast<dynamic_order_node *> (rotate_right_base ());
+        auto *lchild               = static_cast<dynamic_set_node *> (rotate_right_base ());
         lchild->m_size             = m_size;
         m_size                     = 1 + size (m_left) + size (m_right);
         return lchild;
     }
-};
-
-template <typename T> struct dynamic_set_node : public dynamic_order_node
-{
-    using value_type = T;
-    using typename dynamic_order_node::base_node;
-    using typename dynamic_order_node::base_node_ptr;
 
     dynamic_set_node (T val) : m_value {val} {}
-
-    value_type m_value {};
 };
 
 }   // namespace containers
