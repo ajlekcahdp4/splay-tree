@@ -230,6 +230,7 @@ struct binary_tree
         throw std::out_of_range ("No element with requested key to erase");
     }
 
+    // Basicly erase node from the tree without rebalancing
     void erase_node_base (base_node_ptr to_erase)
     {
         auto succ            = to_erase->successor_base ([] (base_node_ptr) {});
@@ -266,38 +267,40 @@ struct binary_tree
 
     bool operator!= (const self &other) const { return !(*this == other); }
 
-    void dump (std::string filename) const
+    virtual void dump (std::ostream &stream) const
     {
-        std::ofstream p_stream {filename};
-        assert (p_stream);
-        p_stream << "digraph {\nrankdir = TB\n";
+        assert (stream);
+        stream << "digraph {\nrankdir = TB\n";
         for ( auto pos = begin (); pos != end (); pos++ )
         {
-            p_stream << "\tnode" << pos.m_node << "[label = \"{" << *pos << "} | "
-                     << pos.m_node->m_size
-                     << "\", shape=record, style=filled, fillcolor=palegreen];\n";
+            stream << "\tnode" << pos.m_node << "[label = \"" << *pos
+                   << "\", shape=record, style=filled, fillcolor=palegreen];\n";
 
             if ( pos.m_node->m_left )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left << ";\n";
+                stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left
+                       << " [color=black, label=\"lchild\"];\n";
             else
             {
-                p_stream << "\tnode" << pos.m_node << " -> node0_l_" << *pos << ";\n";
-                p_stream << "\tnode0_l_" << *pos
-                         << " [label = \"\", shape=triangle, style=filled, fillcolor=black ];\n";
+                stream << "\tnode" << pos.m_node << " -> node0_l_" << pos.m_node
+                       << " [color=black, label=\"lchild\"];\n";
+                stream << "\tnode0_l_" << pos.m_node
+                       << " [label = \"\", shape=triangle, style=filled, fillcolor=black ];\n";
             }
 
             if ( pos.m_node->m_right )
-                p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right << ";\n";
+                stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right
+                       << " [color=black, label=\"rchild\"];\n";
             else
             {
-                p_stream << "\tnode" << pos.m_node << " -> node0_r_" << *pos << ";\n";
-                p_stream << "\tnode0_r_" << *pos
-                         << " [label = \"\", shape=triangle, style=filled, fillcolor=black];\n";
+                stream << "\tnode" << pos.m_node << " -> node0_r_" << pos.m_node
+                       << " [color=black, label=\"rchild\"];\n";
+                stream << "\tnode0_r_" << pos.m_node
+                       << " [label = \"\", shape=triangle, style=filled, fillcolor=black];\n";
             }
-            p_stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_parent
-                     << " [color=red];\n";
+            stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_parent
+                   << " [color=red, label=\" parent \"];\n";
         }
-        p_stream << "}\n";
+        stream << "}\n";
     }
 };
 

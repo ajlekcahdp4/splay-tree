@@ -149,3 +149,12 @@ TEST (test_binary_tree, delete_all)
     EXPECT_EQ (tree.size (), 0);
     EXPECT_TRUE (tree.empty ());
 }
+
+TEST (test_binary_tree, dump)
+{
+    std::ofstream os {"dump.txt"};
+    binary_tree tree;
+    for ( int i = 1; i <= 10; i++ )
+        tree.insert (i);
+    tree.dump (os);
+}
