@@ -201,9 +201,7 @@ struct binary_tree
     {
         auto to_erase_pos = find_for_erase (
             key, [] (base_node_ptr) {}, [] (base_node_ptr) {});
-
         erase_node_base (to_erase_pos.m_node);
-
         m_header_struct.m_nodes.erase (to_erase_pos.m_node);
         --m_header_struct.m_size;
     }
@@ -234,7 +232,7 @@ struct binary_tree
 
     void erase_node_base (base_node_ptr to_erase)
     {
-        auto succ            = to_erase->successor ();
+        auto succ            = to_erase->successor_base ([] (base_node_ptr) {});
         base_node_ptr target = succ;
         if ( m_header_struct.m_leftmost == to_erase )
         {
@@ -243,11 +241,18 @@ struct binary_tree
         }
         if ( m_header_struct.m_rightmost == to_erase )
         {
-            m_header_struct.m_rightmost = to_erase->predecessor ();
+            m_header_struct.m_rightmost = to_erase->predecessor_base ([] (base_node_ptr) {});
             target                      = to_erase;
         }
         std::swap (static_cast<node_ptr> (target)->m_value,
                    static_cast<node_ptr> (to_erase)->m_value);
+        auto child = target->m_left ? target->m_left : target->m_right;
+        if ( child )
+            child->m_parent = target->m_parent;
+        if ( target->is_left_child () )
+            target->m_parent->m_left = child;
+        else
+            target->m_parent->m_right = child;
     }
 
     template <typename F>

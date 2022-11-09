@@ -56,7 +56,7 @@ struct dl_binary_tree_node_base
 
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 
-  protected:
+  public:
     dl_binary_tree_node_base *rotate_left_base ();
 
     dl_binary_tree_node_base *rotate_right_base ();
@@ -119,7 +119,6 @@ struct dl_binary_tree_node_base
         return node;
     };
 
-  public:
     dl_binary_tree_node_base *rotate_to_parent ()
     {
         if ( is_left_child () )
