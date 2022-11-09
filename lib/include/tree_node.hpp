@@ -42,12 +42,12 @@ struct dl_binary_tree_node_base
 
     virtual dl_binary_tree_node_base *rotate_right () { return rotate_right_base (); }
 
-    virtual dl_binary_tree_node_base *successor ()
+    dl_binary_tree_node_base *successor ()
     {
         return successor_base ([] (base_node_ptr) {});
     }
 
-    virtual dl_binary_tree_node_base *predecessor ()
+    dl_binary_tree_node_base *predecessor ()
     {
         return predecessor_base ([] (base_node_ptr) {});
     }
