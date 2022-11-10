@@ -76,13 +76,56 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
         node::size (left_max) = node::size (left_max->m_left) + node::size (left_max->m_right) + 1;
     }
 
-    void erase (const value_type &key) override {}
+  public:
+    void insert (const value_type &key) override
+    {
+        base_node_ptr to_insert = new node {key};
+        base_set::insert_base (
+            to_insert, [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size++; },
+            [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size--; });
+        splay (to_insert);
+    }
+
+    void erase (const value_type &key) override
+    {
+        auto [to_erase, prev, prev_greater] =
+            base_set::trav_bin_search (key, [] (base_node_ptr) {});
+        if ( !to_erase )
+            throw std::out_of_range ("Element is not presented");
+        erase_splay (to_erase);
+    }
+
+    void erase (iterator it) override { erase_splay (it.m_node); }
+
+    iterator find (const value_type key) const override
+    {
+        auto [found, prev, prev_greater] = base_set::trav_bin_search (key, [] (base_node_ptr) {});
+        if ( !found )
+            return base_set::end ();
+        splay (found);
+        return iterator {static_cast<node_ptr> (found), this};
+    }
+
+    iterator lower_bound (const value_type &key) const override
+    {
+        auto lb = base_set::lower_bound_base (key);
+        if ( lb )
+            splay (lb);
+        return iterator {static_cast<node_ptr> (lb), this};
+    }
+
+    iterator upper_bound (const value_type &key) const override
+    {
+        auto ub = base_set::upper_bound_base (key);
+        if ( ub )
+            splay (ub);
+        return iterator {static_cast<node_ptr> (ub), this};
+    }
 
   protected:
-    void erase_splay (base_node_ptr node)
+    void erase_splay (base_node_ptr to_erase)
     {
-        assert (node);
-        auto to_erase = node;
+        assert (to_erase);
 
         if ( base_set::size () > 1 )
         {
@@ -110,7 +153,7 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
             base_set::reset_header_struct ();
         }
         --base_set::size_ref ();
-        base_set::erase_node_from_nodes (node);
+        base_set::erase_node_from_nodes (to_erase);
     }
 };
 

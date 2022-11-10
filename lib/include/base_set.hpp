@@ -232,6 +232,11 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         m_header_struct.m_nodes.erase (to_erase);
     }
 
+    void insert_node_to_nodes (base_node_ptr to_insert)
+    {
+        m_header_struct.m_nodes.emplace (to_insert, to_insert);
+    }
+
     bool compare (const value_type &lhs, const value_type &rhs) const
     {
         return m_compare_struct.m_value_compare (lhs, rhs);
