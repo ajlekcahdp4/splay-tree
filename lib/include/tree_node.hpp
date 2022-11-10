@@ -141,12 +141,15 @@ template <typename T> struct set_node : public dl_binary_tree_node_base
 
 template <typename T> struct dynamic_order_set_node : public set_node<T>
 {
+    using base = set_node<T>;
     using typename set_node<T>::value_type;
     using size_type = typename std::size_t;
     using typename set_node<T>::base_node;
     using typename set_node<T>::base_node_ptr;
 
     size_type m_size = 1;
+
+    dynamic_order_set_node (const value_type value) : set_node<T> {value} {}
 
     static size_type size (const base_node_ptr base_ptr)
     {
@@ -155,8 +158,7 @@ template <typename T> struct dynamic_order_set_node : public set_node<T>
 
     base_node_ptr rotate_left () override
     {
-        auto rchild =
-            static_cast<dynamic_order_set_node *> (rotate_left_base ([] (base_node_ptr) {}));
+        auto rchild = static_cast<dynamic_order_set_node *> (base_node::rotate_left_base ());
         rchild->m_size             = m_size;
         m_size                     = 1 + size (base_node::m_left) + size (base_node::m_right);
         return rchild;
@@ -164,8 +166,7 @@ template <typename T> struct dynamic_order_set_node : public set_node<T>
 
     base_node_ptr rotate_right () override
     {
-        auto lchild =
-            static_cast<dynamic_order_set_node *> (rotate_right_base ([] (base_node_ptr) {}));
+        auto lchild = static_cast<dynamic_order_set_node *> (base_node::rotate_right_base ());
         lchild->m_size             = m_size;
         m_size                     = 1 + size (base_node::m_left) + size (base_node::m_right);
         return lchild;

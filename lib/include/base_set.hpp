@@ -69,7 +69,7 @@ struct header
 
 template <typename T, class Compare_t = std::less<T>> struct base_set
 {
-  private:
+  protected:
     using key_compare_t = key_compare<Compare_t>;
     using self          = base_set<T, Compare_t>;
 
