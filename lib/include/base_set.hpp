@@ -186,8 +186,8 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     virtual void insert (const value_type &key)
     {
         base_node_ptr to_insert = new node {key};
-        auto res                = insert_base (
-                           to_insert, [] (base_node_ptr) {}, [] (base_node_ptr) {});
+        insert_base (
+            to_insert, [] (base_node_ptr) {}, [] (base_node_ptr) {});
     }
 
     virtual void erase (const value_type &key)
@@ -285,33 +285,33 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     {
         assert (stream);
         stream << "digraph {\nrankdir = TB\n";
-        for ( auto &node : m_header_struct.m_nodes )
+        for ( auto pos = begin (); pos != end (); pos++ )
         {
-            stream << "\tnode" << node.first << "[label = \"" << node.first
+            stream << "\tnode" << pos.m_node << "[label = \"" << *pos
                    << "\", shape=record, style=filled, fillcolor=palegreen];\n";
 
-            if ( node.first->m_left )
-                stream << "\tnode" << node.first << " -> node" << node.first->m_left
+            if ( pos.m_node->m_left )
+                stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_left
                        << " [color=black, label=\"lchild\"];\n";
             else
             {
-                stream << "\tnode" << node.first << " -> node0_l_" << node.first
+                stream << "\tnode" << pos.m_node << " -> node0_l_" << pos.m_node
                        << " [color=black, label=\"lchild\"];\n";
-                stream << "\tnode0_l_" << node.first
+                stream << "\tnode0_l_" << pos.m_node
                        << " [label = \"\", shape=triangle, style=filled, fillcolor=black ];\n";
             }
 
-            if ( node.first->m_right )
-                stream << "\tnode" << node.first << " -> node" << node.first->m_right
+            if ( pos.m_node->m_right )
+                stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_right
                        << " [color=black, label=\"rchild\"];\n";
             else
             {
-                stream << "\tnode" << node.first << " -> node0_r_" << node.first
+                stream << "\tnode" << pos.m_node << " -> node0_r_" << pos.m_node
                        << " [color=black, label=\"rchild\"];\n";
-                stream << "\tnode0_r_" << node.first
+                stream << "\tnode0_r_" << pos.m_node
                        << " [label = \"\", shape=triangle, style=filled, fillcolor=black];\n";
             }
-            stream << "\tnode" << node.first << " -> node" << node.first->m_parent
+            stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_parent
                    << " [color=red, label=\" parent \"];\n";
         }
         stream << "}\n";
