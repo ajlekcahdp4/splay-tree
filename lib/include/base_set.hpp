@@ -223,16 +223,29 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     }
 
   protected:
+    void reset_header_struct () { m_header_struct.m_reset (); }
+
+    size_type &size_ref () { return m_header_struct.m_size; }
+
+    void erase_node_from_nodes (base_node_ptr to_erase)
+    {
+        m_header_struct.m_nodes.erase (to_erase);
+    }
+
     bool compare (const value_type &lhs, const value_type &rhs) const
     {
         return m_compare_struct.m_value_compare (lhs, rhs);
     }
 
+    base_node_ptr &leftmost () { return m_header_struct.m_leftmost; }
+
     base_node_ptr leftmost () const { return m_header_struct.m_leftmost; }
+
+    base_node_ptr &rightmost () { return m_header_struct.m_rightmost; }
 
     base_node_ptr rightmost () const { return m_header_struct.m_rightmost; }
 
-    base_node_ptr root () const { return m_header_struct.m_header->m_left; }
+    base_node_ptr &root () const { return m_header_struct.m_header->m_left; }
 
     template <typename F1, typename F2>
     base_node_ptr insert_base (base_node_ptr to_insert, F1 step, F2 step_if_already)

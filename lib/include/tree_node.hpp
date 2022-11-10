@@ -151,9 +151,9 @@ template <typename T> struct dynamic_order_set_node : public set_node<T>
 
     dynamic_order_set_node (const value_type value) : set_node<T> {value} {}
 
-    static size_type size (const base_node_ptr base_ptr)
+    static size_type &size (base_node_ptr base_ptr)
     {
-        return static_cast<const dynamic_order_set_node *> (base_ptr)->m_size;
+        return static_cast<dynamic_order_set_node *> (base_ptr)->m_size;
     }
 
     base_node_ptr rotate_left () override

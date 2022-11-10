@@ -28,7 +28,7 @@ namespace containers
 template <typename T, class Compare_t = std::less<T>>
 struct dynamic_order_set : public base_set<T, Compare_t>
 {
-  private:
+  protected:
     using base          = base_set<T, Compare_t>;
     using node          = dynamic_order_set_node<T>;
     using node_ptr      = node *;
@@ -36,7 +36,6 @@ struct dynamic_order_set : public base_set<T, Compare_t>
     using base_node_ptr = typename base::base_node_ptr;
 
   public:
-    using compare    = Compare_t;
     using value_type = T;
     using size_type  = typename node::size_type;
 
