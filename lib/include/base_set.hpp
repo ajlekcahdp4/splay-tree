@@ -192,12 +192,8 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     virtual void erase (const value_type &key)
     {
-        auto to_erase = find_for_erase (
+        erase_base (
             key, [] (base_node_ptr) {}, [] (base_node_ptr) {});
-        auto target = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
-        evict_node_for_erase (target);
-        m_header_struct.m_nodes.erase (to_erase);
-        --m_header_struct.m_size;
     }
 
     bool equal (const self &other) const
@@ -215,6 +211,16 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         m_header_struct.m_nodes.emplace (to_insert, to_insert);
         ++m_header_struct.m_size;
         return to_insert;
+    }
+
+    template <typename F1, typename F2>
+    void erase_base (const value_type &key, F1 step, F2 step_if_no)
+    {
+        auto to_erase = find_for_erase (key, step, step_if_no);
+        auto target   = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
+        evict_node_for_erase (target);
+        m_header_struct.m_nodes.erase (target);
+        --m_header_struct.m_size;
     }
 
     // insert node in tree without rebalancing.
@@ -243,17 +249,20 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     template <typename F> base_node_ptr update_bounds_for_erase (base_node_ptr to_erase, F step)
     {
         auto succ            = to_erase->successor_base (step);
-        base_node_ptr target = succ;
+        base_node_ptr target = nullptr;
         if ( m_header_struct.m_leftmost == to_erase )
         {
             m_header_struct.m_leftmost = succ;
-            target                     = to_erase;
+            return to_erase;
         }
         if ( m_header_struct.m_rightmost == to_erase )
         {
             m_header_struct.m_rightmost = to_erase->predecessor_base (step);
-            target                      = to_erase;
+            return to_erase;
         }
+        target = succ;
+        std::swap (static_cast<node_ptr> (target)->m_value,
+                   static_cast<node_ptr> (to_erase)->m_value);
         return target;
     }
 

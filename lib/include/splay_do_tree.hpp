@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "binary_tree.hpp"
+#include "base_set.hpp"
 #include "tree_node.hpp"
 
 #include <algorithm>

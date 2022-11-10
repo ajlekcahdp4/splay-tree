@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <set>
 
 #include "base_set.hpp"
 
@@ -134,6 +135,40 @@ TEST (test_base_set, erase_by_key_3)
 
     EXPECT_EQ (*tree.begin (), 1);
     EXPECT_EQ (*tree.rbegin (), 1);
+}
+
+TEST (test_base_set, erase_by_key_4)
+{
+    base_set tree;
+    std::set<int> std_set {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    for ( auto &el : std_set )
+        tree.insert (el);
+    EXPECT_TRUE (std::equal (tree.begin (), tree.end (), std_set.begin ()));
+    tree.erase (2);
+    tree.erase (4);
+    tree.erase (7);
+    std_set.erase (2);
+    std_set.erase (4);
+    std_set.erase (7);
+    auto it1 = tree.begin ();
+    for ( auto it2 = std_set.begin (); it2 != std_set.end (); ++it1, ++it2 )
+        EXPECT_EQ (*it1, *it2);
+}
+
+TEST (test_base_set, erase_by_key_5)
+{
+    base_set tree;
+    std::set<int> std_set {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    for ( auto &el : std_set )
+        tree.insert (el);
+    EXPECT_TRUE (std::equal (tree.begin (), tree.end (), std_set.begin ()));
+    tree.erase (1);
+    tree.erase (4);
+    tree.erase (10);
+    std_set.erase (1);
+    std_set.erase (4);
+    std_set.erase (10);
+    EXPECT_TRUE (std::equal (tree.begin (), tree.end (), std_set.begin ()));
 }
 
 TEST (test_base_set, delete_all)
