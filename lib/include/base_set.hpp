@@ -78,8 +78,6 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     using node          = set_node<T>;
     using node_ptr      = node *;
 
-    using compare = Compare_t;
-
   public:
     using size_type  = typename std::size_t;
     using value_type = T;
@@ -225,6 +223,15 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     }
 
   protected:
+    bool compare (const value_type &lhs, const value_type &rhs) const
+    {
+        return m_compare_struct.m_value_compare (lhs, rhs);
+    }
+
+    base_node_ptr leftmost () const { return m_header_struct.m_leftmost; }
+
+    base_node_ptr rightmost () const { return m_header_struct.m_rightmost; }
+
     base_node_ptr root () const { return m_header_struct.m_header->m_left; }
 
     template <typename F1, typename F2>
@@ -238,7 +245,7 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     void erase_base (base_node_ptr to_erase)
     {
-        auto target   = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
+        auto target = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
         evict_node_for_erase (target);
         m_header_struct.m_nodes.erase (target);
         --m_header_struct.m_size;
@@ -269,11 +276,10 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     // "step" applies to every node on the path to the successor or predecessor.
     template <typename F> base_node_ptr update_bounds_for_erase (base_node_ptr to_erase, F step)
     {
-        auto succ            = to_erase->successor_base (step);
         base_node_ptr target = nullptr;
         if ( m_header_struct.m_leftmost == to_erase )
         {
-            m_header_struct.m_leftmost = succ;
+            m_header_struct.m_leftmost = to_erase->successor_base (step);
             return to_erase;
         }
         if ( m_header_struct.m_rightmost == to_erase )
@@ -281,9 +287,13 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
             m_header_struct.m_rightmost = to_erase->predecessor_base (step);
             return to_erase;
         }
-        target = succ;
+        target = to_erase->successor_base (step);
         std::swap (static_cast<node_ptr> (target)->m_value,
                    static_cast<node_ptr> (to_erase)->m_value);
+        if ( target == m_header_struct.m_leftmost )
+            m_header_struct.m_leftmost = to_erase;
+        if ( target == m_header_struct.m_rightmost )
+            m_header_struct.m_rightmost = to_erase;
         return target;
     }
 
@@ -373,6 +383,8 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
             stream << "\tnode" << pos.m_node << " -> node" << pos.m_node->m_parent
                    << " [color=red, label=\" parent \"];\n";
         }
+        stream << "\tnode_leftmost -> node" << m_header_struct.m_leftmost << "\n";
+        stream << "\tnode_rightmost -> node" << m_header_struct.m_rightmost << "\n";
         stream << "}\n";
     }
 };

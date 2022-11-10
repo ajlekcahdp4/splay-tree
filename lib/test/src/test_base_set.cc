@@ -209,6 +209,16 @@ TEST (test_base_set, delete_all)
     EXPECT_TRUE (tree.empty ());
 }
 
+TEST (test_base_set, test_loop_erase)
+{
+    base_set tree;
+    for ( int i = 1; i <= 10; i++ )
+        tree.insert (i);
+
+    for ( int i = 5; i <= 10; i++ )
+        tree.erase (i);
+}
+
 TEST (test_base_set, find)
 {
     base_set tree;
