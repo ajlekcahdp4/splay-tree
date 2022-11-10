@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include "binary_tree.hpp"
+#include "base_set.hpp"
 
-template struct red::containers::binary_tree<red::containers::dynamic_set_node<int>>;
-using binary_tree = typename red::containers::binary_tree<red::containers::dynamic_set_node<int>>;
+template struct red::containers::base_set<int>;
+using base_set = typename red::containers::base_set<int>;
 
-TEST (test_binary_tree, ctor) { binary_tree {}; }
+TEST (test_base_set, ctor) { base_set {}; }
 
-TEST (test_binary_tree, double_insert)
+TEST (test_base_set, double_insert)
 {
-    binary_tree tree;
+    base_set tree;
     for ( int i = 0; i < 10; i++ )
         tree.insert (i);
 
@@ -22,9 +22,9 @@ TEST (test_binary_tree, double_insert)
     }
 }
 
-TEST (test_binary_tree, delete_unrepresented)
+TEST (test_base_set, delete_unrepresented)
 {
-    binary_tree tree;
+    base_set tree;
     for ( int i = 0; i < 10; i++ )
         tree.insert (i);
 
@@ -37,9 +37,9 @@ TEST (test_binary_tree, delete_unrepresented)
     }
 }
 
-TEST (test_binary_tree, range_for)
+TEST (test_base_set, range_for)
 {
-    binary_tree tree;
+    base_set tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
@@ -53,9 +53,9 @@ TEST (test_binary_tree, range_for)
     }
 }
 
-TEST (test_binary_tree, clear)
+TEST (test_base_set, clear)
 {
-    binary_tree tree;
+    base_set tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
@@ -66,14 +66,14 @@ TEST (test_binary_tree, clear)
     EXPECT_EQ (tree.begin (), tree.end ());
 }
 
-TEST (test_binary_tree, equal_1)
+TEST (test_base_set, equal_1)
 {
-    binary_tree tree1;
+    base_set tree1;
 
     for ( int i = 1; i <= 10; i++ )
         tree1.insert (i);
 
-    binary_tree tree2;
+    base_set tree2;
 
     for ( int i = 1; i <= 10; i++ )
         tree2.insert (2 * i);
@@ -83,15 +83,15 @@ TEST (test_binary_tree, equal_1)
     EXPECT_TRUE (tree1 != tree2);
 }
 
-TEST (test_binary_tree, move_ctor)
+TEST (test_base_set, move_ctor)
 {
-    binary_tree tree;
+    base_set tree;
 
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
 
     std::vector<int> v {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-    binary_tree tree2 = std::move (tree);
+    base_set tree2 = std::move (tree);
     for ( auto &i : tree2 )
     {
         EXPECT_EQ (i, v.back ());
@@ -99,18 +99,18 @@ TEST (test_binary_tree, move_ctor)
     }
 }
 
-TEST (test_binary_tree, erase_by_key_1)
+TEST (test_base_set, erase_by_key_1)
 {
-    binary_tree tree;
+    base_set tree;
     tree.insert (1);
     tree.erase (1);
 
     EXPECT_TRUE (tree.empty ());
 }
 
-TEST (test_binary_tree, erase_by_key_2)
+TEST (test_base_set, erase_by_key_2)
 {
-    binary_tree tree;
+    base_set tree;
     tree.insert (1);
     tree.insert (2);
 
@@ -122,9 +122,9 @@ TEST (test_binary_tree, erase_by_key_2)
     EXPECT_EQ (*tree.rbegin (), 2);
 }
 
-TEST (test_binary_tree, erase_by_key_3)
+TEST (test_base_set, erase_by_key_3)
 {
-    binary_tree tree;
+    base_set tree;
     tree.insert (1);
     tree.insert (2);
 
@@ -136,9 +136,9 @@ TEST (test_binary_tree, erase_by_key_3)
     EXPECT_EQ (*tree.rbegin (), 1);
 }
 
-TEST (test_binary_tree, delete_all)
+TEST (test_base_set, delete_all)
 {
-    binary_tree tree;
+    base_set tree;
 
     for ( int i = 0; i < 10; i++ )
         tree.insert (i);
@@ -150,10 +150,10 @@ TEST (test_binary_tree, delete_all)
     EXPECT_TRUE (tree.empty ());
 }
 
-TEST (test_binary_tree, dump)
+TEST (test_base_set, dump)
 {
     std::ofstream os {"dump.txt"};
-    binary_tree tree;
+    base_set tree;
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);
     tree.dump (os);

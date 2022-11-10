@@ -28,10 +28,6 @@ namespace containers
 
 struct dl_binary_tree_node_base
 {
-  public:
-    using base_node     = dl_binary_tree_node_base;
-    using base_node_ptr = dl_binary_tree_node_base *;
-
     dl_binary_tree_node_base *m_parent = nullptr;
     dl_binary_tree_node_base *m_left   = nullptr;
     dl_binary_tree_node_base *m_right  = nullptr;
@@ -44,19 +40,18 @@ struct dl_binary_tree_node_base
 
     dl_binary_tree_node_base *successor ()
     {
-        return successor_base ([] (base_node_ptr) {});
+        return successor_base ([] (dl_binary_tree_node_base *) {});
     }
 
     dl_binary_tree_node_base *predecessor ()
     {
-        return predecessor_base ([] (base_node_ptr) {});
+        return predecessor_base ([] (dl_binary_tree_node_base *) {});
     }
 
     bool is_left_child () const { return (m_parent ? this == m_parent->m_left : false); }
 
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
 
-  public:
     dl_binary_tree_node_base *rotate_left_base ();
 
     dl_binary_tree_node_base *rotate_right_base ();
@@ -128,43 +123,53 @@ struct dl_binary_tree_node_base
     }
 };
 
-template <typename T> struct dynamic_set_node : public dl_binary_tree_node_base
+template <typename T> struct set_node : public dl_binary_tree_node_base
 {
-    using value_type = T;
-    using size_type  = typename std::size_t;
-    using typename dl_binary_tree_node_base::base_node;
-    using typename dl_binary_tree_node_base::base_node_ptr;
+    using value_type    = T;
+    using base_node     = dl_binary_tree_node_base;
+    using base_node_ptr = base_node *;
 
-    size_type m_size = 1;
     value_type m_value {};
-
-    static size_type size (const base_node_ptr base_ptr)
-    {
-        return static_cast<const dynamic_set_node *> (base_ptr)->m_size;
-    }
 
     static value_type &value (const base_node_ptr base_ptr)
     {
-        return static_cast<const dynamic_set_node *> (base_ptr)->m_value;
+        return static_cast<const set_node *> (base_ptr)->m_value;
+    }
+
+    set_node (T val) : m_value {val} {}
+};
+
+template <typename T> struct dynamic_order_set_node : public set_node<T>
+{
+    using typename set_node<T>::value_type;
+    using size_type = typename std::size_t;
+    using typename set_node<T>::base_node;
+    using typename set_node<T>::base_node_ptr;
+
+    size_type m_size = 1;
+
+    static size_type size (const base_node_ptr base_ptr)
+    {
+        return static_cast<const dynamic_order_set_node *> (base_ptr)->m_size;
     }
 
     base_node_ptr rotate_left () override
     {
-        auto *rchild               = static_cast<dynamic_set_node *> (rotate_left_base ());
+        auto rchild =
+            static_cast<dynamic_order_set_node *> (rotate_left_base ([] (base_node_ptr) {}));
         rchild->m_size             = m_size;
-        m_size                     = 1 + size (m_left) + size (m_right);
+        m_size                     = 1 + size (base_node::m_left) + size (base_node::m_right);
         return rchild;
     }
 
     base_node_ptr rotate_right () override
     {
-        auto *lchild               = static_cast<dynamic_set_node *> (rotate_right_base ());
+        auto lchild =
+            static_cast<dynamic_order_set_node *> (rotate_right_base ([] (base_node_ptr) {}));
         lchild->m_size             = m_size;
-        m_size                     = 1 + size (m_left) + size (m_right);
+        m_size                     = 1 + size (base_node::m_left) + size (base_node::m_right);
         return lchild;
     }
-
-    dynamic_set_node (T val) : m_value {val} {}
 };
 
 }   // namespace containers

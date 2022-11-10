@@ -9,7 +9,7 @@
 
 // do_tree functions implementation
 
-#include "binary_tree.hpp"
+#include "base_set.hpp"
 
 namespace red
 {
