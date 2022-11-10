@@ -192,8 +192,31 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     virtual void erase (const value_type &key)
     {
-        erase_base (
+        auto to_erase = find_for_erase (
             key, [] (base_node_ptr) {}, [] (base_node_ptr) {});
+        erase_base (to_erase);
+    }
+
+    virtual void erase (iterator it) { erase_base (it.m_node); }
+
+    virtual iterator find (const value_type key) const
+    {
+        auto [found, prev, prev_greater] = trav_bin_search (key, [] (base_node_ptr) {});
+        if ( !found )
+            return end ();
+        return iterator {static_cast<node_ptr> (found), this};
+    }
+
+    virtual iterator lower_bound (const value_type &val) const
+    {
+        auto res = lower_bound_base (val);
+        return iterator {static_cast<node_ptr> (res), this};
+    }
+
+    virtual iterator upper_bound (const value_type &val) const
+    {
+        auto res = upper_bound_base (val);
+        return iterator {static_cast<node_ptr> (res), this};
     }
 
     bool equal (const self &other) const
@@ -213,10 +236,8 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         return to_insert;
     }
 
-    template <typename F1, typename F2>
-    void erase_base (const value_type &key, F1 step, F2 step_if_no)
+    void erase_base (base_node_ptr to_erase)
     {
-        auto to_erase = find_for_erase (key, step, step_if_no);
         auto target   = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
         evict_node_for_erase (target);
         m_header_struct.m_nodes.erase (target);
@@ -275,6 +296,44 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
             target->m_parent->m_left = child;
         else
             target->m_parent->m_right = child;
+    }
+
+    base_node_ptr lower_bound_base (const value_type &val) const
+    {
+        base_node_ptr node   = root ();
+        base_node_ptr parent = nullptr;
+        while ( node )
+        {
+            bool key_bigger =
+                m_compare_struct.m_value_compare (static_cast<node_ptr> (node)->m_value, val);
+            if ( !key_bigger )
+            {
+                parent = node;
+                node   = node->m_left;
+            }
+            else
+                node = node->m_right;
+        }
+        return parent;
+    }
+
+    base_node_ptr upper_bound_base (const value_type &val) const
+    {
+        base_node_ptr node   = root ();
+        base_node_ptr parent = nullptr;
+        while ( node )
+        {
+            bool key_less =
+                m_compare_struct.m_value_compare (val, static_cast<node_ptr> (node)->m_value);
+            if ( key_less )
+            {
+                parent = node;
+                node   = node->m_left;
+            }
+            else
+                node = node->m_right;
+        }
+        return parent;
     }
 
     template <typename F>

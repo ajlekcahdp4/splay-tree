@@ -53,9 +53,10 @@ struct dynamic_order_set : public base_set<T, Compare_t>
 
     void erase (const value_type &key) override
     {
-        base::erase_base (
+        auto to_erase = base::find_for_erase (
             key, [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size--; },
             [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size++; });
+        base::erase_base (to_erase);
     }
 
     void dump (std::ostream &stream) const override
