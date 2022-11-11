@@ -320,7 +320,7 @@ TEST (test_splay_set, test_distance)
 
 TEST (test_splay_set, dump)
 {
-    std::ofstream os {"dump.txt"};
+    std::ofstream os {"dump_splay_set.txt"};
     splay_set tree;
     for ( int i = 1; i <= 10; i++ )
         tree.insert (i);

@@ -225,7 +225,9 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
   protected:
     void reset_header_struct () { m_header_struct.m_reset (); }
 
-    size_type &size_ref () { return m_header_struct.m_size; }
+    void inc_size () { ++m_header_struct.m_size; }
+
+    void decr_size () { --m_header_struct.m_size; }
 
     void erase_node_from_nodes (base_node_ptr to_erase)
     {

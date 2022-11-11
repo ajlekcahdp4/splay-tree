@@ -36,6 +36,8 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
     using typename base_do_set::iterator;
     using typename base_do_set::reverse_iterator;
 
+    using base_set::dump;
+
   private:
     void splay (base_node_ptr node) const
     {
@@ -127,33 +129,32 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
     void erase_splay (base_node_ptr to_erase)
     {
         assert (to_erase);
-
         if ( base_set::size () > 1 )
         {
             splay (to_erase);
             if ( !to_erase->m_left )
             {
                 base_set::leftmost ()       = base_set::root ()->successor ();
-                base_set::root ()           = std::move (to_erase->m_right);
-                base_set::root ()->m_parent = base_set::root ();
+                base_set::root ()           = to_erase->m_right;
+                base_set::root ()->m_parent = to_erase->m_parent;
             }
             else if ( !to_erase->m_right )
             {
                 base_set::rightmost ()      = base_set::root ()->predecessor ();
-                base_set::root ()           = std::move (to_erase->m_left);
-                base_set::root ()->m_parent = base_set::root ();
+                base_set::root ()           = to_erase->m_left;
+                base_set::root ()->m_parent = to_erase->m_parent;
             }
 
             else
             {
                 merge (to_erase->m_left, to_erase->m_right);
             }
+            base_set::decr_size ();
         }
         else
         {
             base_set::reset_header_struct ();
         }
-        --base_set::size_ref ();
         base_set::erase_node_from_nodes (to_erase);
     }
 };
