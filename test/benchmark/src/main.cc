@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "splay_set.hpp"
+#include "splay_dynamic_order_set.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -18,7 +18,7 @@
 std::chrono::duration<double, std::milli>
 queries_splay (const std::vector<int> &elements, const std::vector<std::pair<int, int>> &bounds)
 {
-    red::containers::splay_set<int> set {};
+    red::containers::splay_dynamic_order_set<int> set {};
 
     for ( auto elem : elements )
         set.insert (elem);

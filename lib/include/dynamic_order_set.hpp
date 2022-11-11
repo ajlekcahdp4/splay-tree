@@ -128,6 +128,8 @@ struct dynamic_order_set : public base_set<T, Compare_t>
         return (*closest_left == val ? rank - 1 : rank);
     }
 
+    size_type get_rank_of (const iterator it) const { return get_rank_of (it.m_node); }
+
   protected:
     virtual size_type get_rank_of (base_node_ptr node) const
     {
