@@ -90,8 +90,19 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     base_set () : m_compare_struct {Compare_t {}}, m_header_struct {} {}
     base_set (const Compare_t &comp) : m_compare_struct {comp}, m_header_struct {} {}
 
-    base_set (const self &other)        = delete;
-    self &operator= (const self &other) = delete;
+    base_set (const self &rhs) : m_compare_struct {rhs.m_compare_struct}, m_header_struct {}
+    {
+        for ( auto &elem : rhs )
+            insert (elem);
+    }
+
+    self &operator= (const self &rhs)
+    {
+        self tmp {rhs};
+        std::swap (m_compare_struct, tmp.m_compare_struct);
+        std::swap (m_header_struct, tmp.m_header_struct);
+        return *this;
+    }
 
     base_set (self &&rhs) noexcept : m_compare_struct {Compare_t {}}
     {

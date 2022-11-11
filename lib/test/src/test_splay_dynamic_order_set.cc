@@ -318,6 +318,47 @@ TEST (test_splay_set, test_distance)
     EXPECT_EQ (std::distance (it1, it2), 6);
 }
 
+TEST (test_splay_set, copy_ctor)
+{
+    splay_set tree1;
+
+    for ( int i = 1; i <= 10; i++ )
+        tree1.insert (i);
+
+    tree1.erase (1);
+    tree1.erase (7);
+    tree1.erase (4);
+
+    splay_set tree2 {tree1};
+    std::set<int> std_set (tree1.begin (), tree1.end ());
+
+    EXPECT_EQ (tree1, tree2);
+    tree1.clear ();
+    EXPECT_TRUE (std::equal (tree2.begin (), tree2.end (), std_set.begin ()));
+}
+
+TEST (test_splay_set, copy_assignment)
+{
+    splay_set tree1;
+    for ( int i = 1; i <= 10; i++ )
+        tree1.insert (i);
+    tree1.erase (1);
+    tree1.erase (7);
+    tree1.erase (4);
+
+    splay_set tree2;
+    for ( int i = 10; i <= 20; i++ )
+        tree2.insert (i);
+    tree2.erase (11);
+    tree2.erase (17);
+    tree2.erase (14);
+
+    EXPECT_NE (tree1, tree2);
+
+    tree2 = tree1;
+    EXPECT_EQ (tree1, tree2);
+}
+
 TEST (test_splay_set, dump)
 {
     std::ofstream os {"dump_splay_set.txt"};
