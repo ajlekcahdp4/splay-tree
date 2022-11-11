@@ -19,7 +19,7 @@ dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_left_base ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
-    auto rchild_ptr = node;
+    auto rchild_ptr = node->m_right;
     node->m_right   = rchild_ptr->m_left;
     if ( node->m_right )
         node->m_right->m_parent = node;
@@ -41,7 +41,7 @@ dl_binary_tree_node_base *dl_binary_tree_node_base::rotate_right_base ()
 {
     auto node       = this;
     auto parent     = this->m_parent;
-    auto lchild_ptr = node;
+    auto lchild_ptr = node->m_left;
     node->m_left    = lchild_ptr->m_right;
     if ( node->m_left )
         node->m_left->m_parent = node;

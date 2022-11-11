@@ -73,7 +73,8 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
             base_set::root () = std::move (left_max->m_parent->m_left);
         else
             base_set::root () = std::move (left_max->m_parent->m_right);
-        node::size (left_max) = node::size (left_max->m_left) + node::size (left_max->m_right) + 1;
+        node::size_ref (left_max) =
+            node::size (left_max->m_left) + node::size (left_max->m_right) + 1;
     }
 
   public:
