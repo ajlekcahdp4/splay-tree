@@ -7,19 +7,14 @@
  * ----------------------------------------------------------------------------
  */
 
-// set wrapper just for beauty.
+// do_tree functions implementation
 
-#pragma once
-
-#include "splay_do_tree.hpp"
+#include "base_set.hpp"
 
 namespace red
 {
 namespace containers
 {
-
-template <typename Key_, typename Compare_ = std::less<Key_>>
-using splay_set = splay_do_tree<Key_, Compare_>;
 
 }   // namespace containers
 }   // namespace red

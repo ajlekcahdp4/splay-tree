@@ -1,10 +1,10 @@
-#include "splay_set.hpp"
+#include "splay_dynamic_order_set.hpp"
 
 #include <iostream>
 
 int main ()
 {
-    red::containers::splay_set<int> set {};
+    red::containers::splay_dynamic_order_set<int> set {};
 
     unsigned n_elems {};
     std::cin >> n_elems;

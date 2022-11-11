@@ -1,7 +1,8 @@
 set (UNIT_TEST_SOURCES
     src/main.cc
-    src/test_do_tree.cc
-    src/test_splay_tree.cc
+    src/test_base_set.cc
+    src/test_dynamic_order_set.cc
+    src/test_splay_dynamic_order_set.cc
 )
 
 if (ENABLE_GTEST)
