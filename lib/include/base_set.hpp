@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-// basic binary tree
+// basic set implementation
 
 #pragma once
 
@@ -67,6 +67,7 @@ struct header
     }
 };
 
+// basic set itself
 template <typename T, class Compare_t = std::less<T>> struct base_set
 {
   protected:

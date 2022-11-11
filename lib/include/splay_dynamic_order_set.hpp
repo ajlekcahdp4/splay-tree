@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-// set wrapper just for beauty.
+// splay set with dynamic ordering
 
 #pragma once
 

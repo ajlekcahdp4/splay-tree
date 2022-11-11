@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------------
  */
 
-// node structs for binary tree
+// node types for binary tree
 
 #pragma once
 
