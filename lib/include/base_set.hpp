@@ -100,8 +100,7 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     self &operator= (const self &rhs)
     {
         self tmp {rhs};
-        std::swap (m_compare_struct, tmp.m_compare_struct);
-        std::swap (m_header_struct, tmp.m_header_struct);
+        std::swap (*this, tmp);
         return *this;
     }
 
