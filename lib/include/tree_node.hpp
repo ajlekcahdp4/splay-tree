@@ -38,16 +38,6 @@ struct dl_binary_tree_node_base
 
     virtual dl_binary_tree_node_base *rotate_right () { return rotate_right_base (); }
 
-    dl_binary_tree_node_base *successor ()
-    {
-        return successor_base ([] (dl_binary_tree_node_base *) {});
-    }
-
-    dl_binary_tree_node_base *predecessor ()
-    {
-        return predecessor_base ([] (dl_binary_tree_node_base *) {});
-    }
-
     bool is_left_child () const { return (m_parent ? this == m_parent->m_left : false); }
 
     bool is_linear () const { return m_parent && (is_left_child () == m_parent->is_left_child ()); }
@@ -56,41 +46,93 @@ struct dl_binary_tree_node_base
 
     dl_binary_tree_node_base *rotate_right_base ();
 
-    template <typename F> dl_binary_tree_node_base *successor_base (F step)
+    dl_binary_tree_node_base *successor () { return successor_base (); }
+
+    const dl_binary_tree_node_base *successor () const { return successor_base (); }
+
+    dl_binary_tree_node_base *successor_base () const
     {
+        auto curr = this;
+        if ( curr->m_right )
+            return curr->m_right->minimum ();
+        auto *prev = curr->m_parent;
+        while ( prev->m_parent && !curr->is_left_child () )
         {
-            auto curr = this;
-            if ( curr->m_right )
-                return curr->m_right->minimum (step);
-            auto *prev = curr->m_parent;
-            while ( prev->m_parent && !curr->is_left_child () )
-            {
-                curr = prev;
-                prev = prev->m_parent;
-            }
-            if ( prev->m_parent )
-                return prev;
-            return nullptr;
+            curr = prev;
+            prev = prev->m_parent;
         }
+        if ( prev->m_parent )
+            return prev;
+        return nullptr;
     }
 
-    template <typename F> dl_binary_tree_node_base *predecessor_base (F step)
+    template <typename F> dl_binary_tree_node_base *successor_step (F step)
     {
+        auto curr = this;
+        if ( curr->m_right )
+            return curr->m_right->minimum (step);
+        auto *prev = curr->m_parent;
+        while ( prev->m_parent && !curr->is_left_child () )
         {
-            auto curr = this;
-            if ( curr->m_left )
-                return curr->m_left->maximum (step);
-            auto prev = curr->m_parent;
-            while ( prev->m_parent && curr->is_left_child () )
-            {
-                curr = prev;
-                prev = prev->m_parent;
-            }
-            if ( prev->m_parent )
-                return prev;
-            return nullptr;
+            curr = prev;
+            prev = prev->m_parent;
         }
+        if ( prev->m_parent )
+            return prev;
+        return nullptr;
     }
+
+    dl_binary_tree_node_base *predecessor () { return predecessor_base (); }
+
+    const dl_binary_tree_node_base *predecessor () const { return predecessor_base (); }
+
+    dl_binary_tree_node_base *predecessor_base () const
+    {
+        auto curr = this;
+        if ( curr->m_left )
+            return curr->m_left->maximum ();
+        auto prev = curr->m_parent;
+        while ( prev->m_parent && curr->is_left_child () )
+        {
+            curr = prev;
+            prev = prev->m_parent;
+        }
+        if ( prev->m_parent )
+            return prev;
+        return nullptr;
+    }
+
+    template <typename F> dl_binary_tree_node_base *predecessor_step (F step)
+    {
+        auto curr = this;
+        if ( curr->m_left )
+            return curr->m_left->maximum (step);
+        auto prev = curr->m_parent;
+        while ( prev->m_parent && curr->is_left_child () )
+        {
+            curr = prev;
+            prev = prev->m_parent;
+        }
+        if ( prev->m_parent )
+            return prev;
+        return nullptr;
+    }
+
+    const dl_binary_tree_node_base *minimum () const
+    {
+        auto node = this;
+        while ( node->m_left )
+            node = node->m_left;
+        return node;
+    };
+
+    dl_binary_tree_node_base *minimum ()
+    {
+        auto node = this;
+        while ( node->m_left )
+            node = node->m_left;
+        return node;
+    };
 
     template <typename F> dl_binary_tree_node_base *minimum (F step)
     {
@@ -100,6 +142,22 @@ struct dl_binary_tree_node_base
             step (node);
             node = node->m_left;
         }
+        return node;
+    };
+
+    const dl_binary_tree_node_base *maximum () const
+    {
+        auto node = this;
+        while ( node->m_right )
+            node = node->m_right;
+        return node;
+    };
+
+    dl_binary_tree_node_base *maximum ()
+    {
+        auto node = this;
+        while ( node->m_right )
+            node = node->m_right;
         return node;
     };
 

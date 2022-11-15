@@ -34,6 +34,7 @@ struct dynamic_order_set : public base_set<T, Compare_t>
     using base          = base_set<T, Compare_t>;
     using node          = dynamic_order_set_node<T>;
     using node_ptr      = node *;
+    using const_node_ptr = const node *;
     using base_node     = typename base::base_node;
     using base_node_ptr = typename base::base_node_ptr;
 
@@ -41,6 +42,8 @@ struct dynamic_order_set : public base_set<T, Compare_t>
     using value_type = T;
     using size_type  = typename node::size_type;
 
+    using typename base::const_iterator;
+    using typename base::const_reverse_iterator;
     using typename base::iterator;
     using typename base::reverse_iterator;
 
@@ -67,7 +70,7 @@ struct dynamic_order_set : public base_set<T, Compare_t>
         for ( auto pos = base::begin (); pos != base::end (); pos++ )
         {
             stream << "\tnode" << pos.m_node << "[label = \"val: " << *pos
-                   << " | size: " << static_cast<node_ptr> (pos.m_node)->m_size
+                   << " | size: " << static_cast<const_node_ptr> (pos.m_node)->m_size
                    << "\", shape=record, style=filled, fillcolor=palegreen];\n";
 
             if ( pos.m_node->m_left )

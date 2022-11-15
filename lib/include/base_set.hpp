@@ -78,6 +78,7 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     using base_node_ptr = base_node *;
     using node          = set_node<T>;
     using node_ptr      = node *;
+    using const_node_ptr = const node *;
 
   public:
     using size_type  = typename std::size_t;
@@ -88,10 +89,10 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     header m_header_struct;
 
   public:
-    base_set () : m_compare_struct {Compare_t {}}, m_header_struct {} {}
-    base_set (const Compare_t &comp) : m_compare_struct {comp}, m_header_struct {} {}
+    base_set () : m_compare_struct {Compare_t {}} {}
+    base_set (const Compare_t &comp) : m_compare_struct {comp} {}
 
-    base_set (const self &rhs) : m_compare_struct {rhs.m_compare_struct}, m_header_struct {}
+    base_set (const self &rhs) : m_compare_struct {rhs.m_compare_struct}
     {
         for ( auto &elem : rhs )
             insert (elem);
@@ -121,17 +122,17 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     struct set_iterator
     {
-        using iterator_category = typename std::bidirectional_iterator_tag;
-        using difference_type   = typename std::ptrdiff_t;
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
         using value_type        = self::value_type;
         using pointer           = value_type *;
         using reference         = value_type &;
 
         reference operator* () const { return m_node->m_value; }
 
-        pointer get () { return &m_node->m_value; }
+        pointer get () const { return &m_node->m_value; }
 
-        pointer operator->() { return get (); }
+        pointer operator->() const { return get (); }
 
         set_iterator &operator++ ()
         {
@@ -169,20 +170,83 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         const self *m_tree = nullptr;
     };
 
+    struct const_set_iterator
+    {
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = self::value_type;
+        using pointer           = const value_type *;
+        using reference         = const value_type &;
+
+        reference operator* () const { return m_node->m_value; }
+
+        pointer get () const { return &m_node->m_value; }
+
+        pointer operator->() const { return get (); }
+
+        const_set_iterator &operator++ ()
+        {
+            m_node = static_cast<const_node_ptr> (m_node->successor ());
+            return *this;
+        }
+
+        const_set_iterator operator++ (int)
+        {
+            auto tmp = *this;
+            m_node   = static_cast<const_node_ptr> (m_node->successor ());
+            return tmp;
+        }
+
+        const_set_iterator &operator-- ()
+        {
+            m_node = (m_node ? static_cast<const_node_ptr> (m_node->predecessor ())
+                             : static_cast<const_node_ptr> (m_tree->m_header_struct.m_rightmost));
+            return *this;
+        }
+
+        const_set_iterator operator-- (int)
+        {
+            auto tmp = *this;
+            m_node   = (m_node ? static_cast<const_node_ptr> (m_node->predecessor ())
+                               : static_cast<const_node_ptr> (m_tree->m_header_struct.m_rightmost));
+            return tmp;
+        }
+
+        bool operator== (const const_set_iterator &other) const { return m_node == other.m_node; }
+
+        bool operator!= (const const_set_iterator &other) const { return !(*this == other); }
+
+        const_node_ptr m_node = nullptr;
+        const self *m_tree    = nullptr;
+    };
+
     using iterator         = set_iterator;
-    using reverse_iterator = typename std::reverse_iterator<set_iterator>;
+    using const_iterator         = const_set_iterator;
+    using reverse_iterator       = typename std::reverse_iterator<iterator>;
+    using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
 
     //  accessors
-    iterator begin () const
+    const_iterator begin () const
+    {
+        return const_iterator {static_cast<node_ptr> (m_header_struct.m_leftmost), this};
+    }
+
+    iterator begin ()
     {
         return iterator {static_cast<node_ptr> (m_header_struct.m_leftmost), this};
     }
 
-    iterator end () const { return iterator {nullptr, this}; }
+    const_iterator end () const { return const_iterator {nullptr, this}; }
 
-    reverse_iterator rbegin () const { return reverse_iterator {end ()}; }
+    iterator end () { return iterator {nullptr, this}; }
 
-    reverse_iterator rend () const { return reverse_iterator {begin ()}; }
+    reverse_iterator rbegin () { return reverse_iterator {end ()}; }
+
+    const_reverse_iterator rbegin () const { return const_reverse_iterator {end ()}; }
+
+    reverse_iterator rend () { return reverse_iterator {begin ()}; }
+
+    const_reverse_iterator rend () const { return const_reverse_iterator {begin ()}; }
 
     size_type size () const { return m_header_struct.m_size; }
 
@@ -208,7 +272,15 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     virtual void erase (iterator it) { erase_base (it.m_node); }
 
-    virtual iterator find (const value_type key) const
+    virtual const_iterator find (const value_type key) const
+    {
+        auto [found, prev, prev_greater] = trav_bin_search (key, [] (base_node_ptr) {});
+        if ( !found )
+            return end ();
+        return const_iterator {static_cast<node_ptr> (found), this};
+    }
+
+    virtual iterator find (const value_type key)
     {
         auto [found, prev, prev_greater] = trav_bin_search (key, [] (base_node_ptr) {});
         if ( !found )
@@ -310,15 +382,15 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         base_node_ptr target = nullptr;
         if ( m_header_struct.m_leftmost == to_erase )
         {
-            m_header_struct.m_leftmost = to_erase->successor_base (step);
+            m_header_struct.m_leftmost = to_erase->successor_step (step);
             return to_erase;
         }
         if ( m_header_struct.m_rightmost == to_erase )
         {
-            m_header_struct.m_rightmost = to_erase->predecessor_base (step);
+            m_header_struct.m_rightmost = to_erase->predecessor_step (step);
             return to_erase;
         }
-        target = to_erase->successor_base (step);
+        target = to_erase->successor_step (step);
         std::swap (static_cast<node_ptr> (target)->m_value,
                    static_cast<node_ptr> (to_erase)->m_value);
         if ( target == m_header_struct.m_leftmost )

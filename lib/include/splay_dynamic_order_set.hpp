@@ -26,6 +26,7 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
     using base_do_set = dynamic_order_set<T, Compare_t>;
     using typename base_do_set::base_node;
     using typename base_do_set::base_node_ptr;
+    using typename base_do_set::const_node_ptr;
     using typename base_do_set::node;
     using typename base_do_set::node_ptr;
 
@@ -33,6 +34,8 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
     using typename base_do_set::size_type;
     using typename base_do_set::value_type;
 
+    using typename base_do_set::const_iterator;
+    using typename base_do_set::const_reverse_iterator;
     using typename base_do_set::iterator;
     using typename base_do_set::reverse_iterator;
 
@@ -100,13 +103,22 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
 
     void erase (iterator it) override { erase_splay (it.m_node); }
 
-    iterator find (const value_type key) const override
+    iterator find (const value_type key) override
     {
         auto [found, prev, prev_greater] = base_set::trav_bin_search (key, [] (base_node_ptr) {});
         if ( !found )
             return base_set::end ();
         splay (found);
         return iterator {static_cast<node_ptr> (found), this};
+    }
+
+    const_iterator find (const value_type key) const override
+    {
+        auto [found, prev, prev_greater] = base_set::trav_bin_search (key, [] (base_node_ptr) {});
+        if ( !found )
+            return base_set::end ();
+        splay (found);
+        return const_iterator {static_cast<node_ptr> (found), this};
     }
 
     iterator lower_bound (const value_type &key) const override
