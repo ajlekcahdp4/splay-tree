@@ -53,7 +53,17 @@ struct header
     std::unordered_map<base_node_ptr, std::unique_ptr<base_node>> m_nodes;
     std::size_t m_size {0};
 
-    header () : m_header {new base_node} { m_nodes.emplace (m_header, m_header); }
+    header ()
+    {
+        auto node = std::make_unique<base_node> ();
+        m_header  = node.get ();
+        m_nodes.emplace (node.get (), std::move (node));
+    }
+
+    void insert_node (std::unique_ptr<base_node> &&node)
+    {
+        m_nodes.emplace (node.get (), std::move (node));
+    }
 
     void m_reset ()
     {
@@ -62,8 +72,9 @@ struct header
         m_header    = nullptr;
         m_size      = 0;
         m_nodes.clear ();
-        m_header = new base_node;
-        m_nodes.emplace (m_header, m_header);
+        auto node = std::make_unique<base_node> ();
+        m_header  = node.get ();
+        m_nodes.emplace (node.get (), std::move (node));
     }
 };
 
@@ -258,7 +269,9 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     virtual void insert (const value_type &key)
     {
-        base_node_ptr to_insert = new node {key};
+        auto to_insert_uptr = std::make_unique<node> (key);
+        auto to_insert      = to_insert_uptr.get ();
+        insert_node_to_nodes (std::move (to_insert_uptr));
         insert_base (
             to_insert, [] (base_node_ptr) {}, [] (base_node_ptr) {});
     }
@@ -306,6 +319,11 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     }
 
   protected:
+    void insert_node_to_nodes (std::unique_ptr<base_node> &&node_uptr)
+    {
+        m_header_struct.insert_node (std::move (node_uptr));
+    }
+
     void reset_header_struct () { m_header_struct.m_reset (); }
 
     void inc_size () { ++m_header_struct.m_size; }
@@ -315,11 +333,6 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     void erase_node_from_nodes (base_node_ptr to_erase)
     {
         m_header_struct.m_nodes.erase (to_erase);
-    }
-
-    void insert_node_to_nodes (base_node_ptr to_insert)
-    {
-        m_header_struct.m_nodes.emplace (to_insert, to_insert);
     }
 
     bool compare (const value_type &lhs, const value_type &rhs) const
@@ -341,7 +354,6 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     base_node_ptr insert_base (base_node_ptr to_insert, F1 step, F2 step_if_already)
     {
         insert_node_base (to_insert, step, step_if_already);
-        m_header_struct.m_nodes.emplace (to_insert, to_insert);
         ++m_header_struct.m_size;
         return to_insert;
     }
@@ -350,7 +362,7 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
     {
         auto target = update_bounds_for_erase (to_erase, [] (base_node_ptr) {});
         evict_node_for_erase (target);
-        m_header_struct.m_nodes.erase (target);
+        erase_node_from_nodes (target);
         --m_header_struct.m_size;
     }
 

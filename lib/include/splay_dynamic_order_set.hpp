@@ -76,7 +76,9 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
   public:
     void insert (const value_type &key) override
     {
-        base_node_ptr to_insert = new node {key};
+        auto to_insert_uptr = std::make_unique<node> (key);
+        auto to_insert      = to_insert_uptr.get ();
+        base_set::insert_node_to_nodes (std::move (to_insert_uptr));
         base_set::insert_base (
             to_insert, [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size++; },
             [] (base_node_ptr node) { static_cast<node_ptr> (node)->m_size--; });
