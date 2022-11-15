@@ -186,12 +186,18 @@ template <typename T> struct set_node : public dl_binary_tree_node_base
     using value_type    = T;
     using base_node     = dl_binary_tree_node_base;
     using base_node_ptr = base_node *;
+    using const_base_node_ptr = const base_node *;
 
     value_type m_value {};
 
-    static value_type &value (const base_node_ptr base_ptr)
+    static const value_type value (const_base_node_ptr base_ptr)
     {
-        return static_cast<const set_node *> (base_ptr)->m_value;
+        return static_cast<const set_node<value_type> *> (base_ptr)->m_value;
+    }
+
+    static value_type &value (base_node_ptr base_ptr)
+    {
+        return static_cast<set_node<value_type> *> (base_ptr)->m_value;
     }
 
     set_node (T val) : m_value {val} {}
