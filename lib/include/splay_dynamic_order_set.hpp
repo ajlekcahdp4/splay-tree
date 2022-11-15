@@ -47,21 +47,12 @@ struct splay_dynamic_order_set : public dynamic_order_set<T, Compare_t>
         assert (node);
         while ( node != base_set::root () )
         {
-            if ( node->m_parent == base_set::root () )
-                node->rotate_to_parent ();
-            else
+            if ( node->m_parent != base_set::root () )
             {
-                bool zigzig = node->is_linear ();
-                if ( zigzig )
-                {
-                    node->m_parent->rotate_to_parent ();
-                }
-                else
-                {
-                    node->rotate_to_parent ();
-                }
-                node->rotate_to_parent ();
+                auto to_rotate = node->is_linear () ? node->m_parent : node;
+                to_rotate->rotate_to_parent ();
             }
+            node->rotate_to_parent ();
         }
     }
 
