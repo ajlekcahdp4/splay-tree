@@ -20,7 +20,7 @@
 #include <iterator>
 #include <memory>
 #include <tuple>
-#include <unordered_map>
+#include <unordered_set>
 
 namespace red
 {
@@ -47,22 +47,47 @@ struct header
     using base_node     = dl_binary_tree_node_base;
     using base_node_ptr = dl_binary_tree_node_base *;
 
+    struct unique_node_ptr_hash
+    {
+        std::size_t operator() (const std::unique_ptr<base_node> &unique_ptr) const
+        {
+            return reinterpret_cast<std::size_t> (unique_ptr.get ());
+        }
+    };
+
+    struct unique_node_ptr_equal
+    {
+        bool operator() (const std::unique_ptr<base_node> &lhs,
+                         const std::unique_ptr<base_node> &rhs) const
+        {
+            return lhs.get () == rhs.get ();
+        }
+    };
+
     base_node_ptr m_header    = nullptr;
     base_node_ptr m_leftmost  = nullptr;
     base_node_ptr m_rightmost = nullptr;
-    std::unordered_map<base_node_ptr, std::unique_ptr<base_node>> m_nodes;
+    std::unordered_set<std::unique_ptr<base_node>, unique_node_ptr_hash, unique_node_ptr_equal>
+        m_nodes;
     std::size_t m_size {0};
 
     header ()
     {
         auto node = std::make_unique<base_node> ();
         m_header  = node.get ();
-        m_nodes.emplace (node.get (), std::move (node));
+        m_nodes.emplace (std::move (node));
     }
 
-    void insert_node (std::unique_ptr<base_node> &&node)
+    // Inserts to_insert into m_nodes. Performs check that to_insert has not already been inserted
+    // (Otherwise releases to_insert to avoid double free and throws an exeption).
+    void insert_node (std::unique_ptr<base_node> &&to_insert)
     {
-        m_nodes.emplace (node.get (), std::move (node));
+        if ( m_nodes.find (to_insert) != m_nodes.end () )
+        {
+            to_insert.release ();
+            throw std::runtime_error ("double insert of the node");
+        }
+        m_nodes.emplace (std::move (to_insert));
     }
 
     void m_reset ()
@@ -74,7 +99,7 @@ struct header
         m_nodes.clear ();
         auto node = std::make_unique<base_node> ();
         m_header  = node.get ();
-        m_nodes.emplace (node.get (), std::move (node));
+        m_nodes.emplace (std::move (node));
     }
 };
 
@@ -332,7 +357,9 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     void erase_node_from_nodes (base_node_ptr to_erase)
     {
-        m_header_struct.m_nodes.erase (to_erase);
+        std::erase_if (m_header_struct.m_nodes, [&] (const std::unique_ptr<base_node> &uptr) {
+            return uptr.get () == to_erase;
+        });
     }
 
     bool compare (const value_type &lhs, const value_type &rhs) const
