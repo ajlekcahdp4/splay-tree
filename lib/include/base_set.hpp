@@ -82,7 +82,7 @@ struct header
     // (Otherwise releases to_insert to avoid double free and throws an exeption).
     void insert_node (std::unique_ptr<base_node> &&to_insert)
     {
-        if ( m_nodes.find (to_insert) != m_nodes.end () )
+        if ( m_nodes.count (to_insert) )
         {
             to_insert.release ();
             throw std::runtime_error ("double insert of the node");
