@@ -156,13 +156,13 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
 
     virtual ~base_set () {}
 
-    struct set_iterator
+    template <bool is_const = false> struct set_iterator
     {
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = self::value_type;
-        using pointer           = value_type *;
-        using reference         = value_type &;
+        using pointer           = std::conditional_t<is_const, const value_type *, value_type *>;
+        using reference         = std::conditional_t<is_const, const value_type &, value_type &>;
 
         reference operator* () const { return m_node->m_value; }
 
@@ -206,58 +206,8 @@ template <typename T, class Compare_t = std::less<T>> struct base_set
         const self *m_tree = nullptr;
     };
 
-    struct const_set_iterator
-    {
-        using iterator_category = std::bidirectional_iterator_tag;
-        using difference_type   = std::ptrdiff_t;
-        using value_type        = self::value_type;
-        using pointer           = const value_type *;
-        using reference         = const value_type &;
-
-        reference operator* () const { return m_node->m_value; }
-
-        pointer get () const { return &m_node->m_value; }
-
-        pointer operator->() const { return get (); }
-
-        const_set_iterator &operator++ ()
-        {
-            m_node = static_cast<const_node_ptr> (m_node->successor ());
-            return *this;
-        }
-
-        const_set_iterator operator++ (int)
-        {
-            auto tmp = *this;
-            m_node   = static_cast<const_node_ptr> (m_node->successor ());
-            return tmp;
-        }
-
-        const_set_iterator &operator-- ()
-        {
-            m_node = (m_node ? static_cast<const_node_ptr> (m_node->predecessor ())
-                             : static_cast<const_node_ptr> (m_tree->m_header_struct.m_rightmost));
-            return *this;
-        }
-
-        const_set_iterator operator-- (int)
-        {
-            auto tmp = *this;
-            m_node   = (m_node ? static_cast<const_node_ptr> (m_node->predecessor ())
-                               : static_cast<const_node_ptr> (m_tree->m_header_struct.m_rightmost));
-            return tmp;
-        }
-
-        bool operator== (const const_set_iterator &other) const { return m_node == other.m_node; }
-
-        bool operator!= (const const_set_iterator &other) const { return !(*this == other); }
-
-        const_node_ptr m_node = nullptr;
-        const self *m_tree    = nullptr;
-    };
-
-    using iterator         = set_iterator;
-    using const_iterator         = const_set_iterator;
+    using iterator               = set_iterator<false>;
+    using const_iterator         = set_iterator<true>;
     using reverse_iterator       = typename std::reverse_iterator<iterator>;
     using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
 
